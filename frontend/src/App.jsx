@@ -7,7 +7,6 @@ import AdminFormsPage from './pages/AdminFormsPage';
 import FormEditorPage from './pages/FormEditorPage';
 import ReportPage from './pages/ReportPage';
 
-// componente de guarda de rota para ADMIN
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -15,7 +14,6 @@ const AdminRoute = ({ children }) => {
     return <p className="text-center mt-5">Loading user information...</p>;
   }
 
-  // se o usuário não está logado ou não é ADMIN, redireciona para o login
   if (!user || user.profile !== 'ADMIN') {
     return <Navigate to="/login" replace />;
   }
@@ -30,8 +28,8 @@ function App() {
         <Routes>
           {/* rotas Públicas */}
           <Route path="/login" element={<LoginPage />} />
-          {/* rota para o hóspede responder a pesquisa */}
-          <Route path="/survey/:companyId/:language" element={<SurveyViewPage />} />
+          {/* rota para o hóspede responder a pesquisa - */}
+          <Route path="/survey/:companyId/:language/:sectionId?" element={<SurveyViewPage />} />
 
           {/* rotas Administrativas (Protegidas por AdminRoute) */}
           <Route path="/admin" element={<AdminRoute><AdminFormsPage /></AdminRoute>} />
@@ -40,7 +38,7 @@ function App() {
           <Route path="/admin/forms/edit/:formId" element={<AdminRoute><FormEditorPage /></AdminRoute>} />
           <Route path="/admin/reports" element={<AdminRoute><ReportPage /></AdminRoute>} />
 
-          {/* rota padrão: Redireciona para o login se nenhuma rota corresponder */}
+          {/* rota padrão: redireciona para o login se nenhuma rota corresponder */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>

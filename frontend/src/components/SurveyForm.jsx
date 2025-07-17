@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import QuestionComponent from './QuestionComponent';
 import PublicSurveyService from '../services/public.survey.service';
 
-const SurveyForm = ({ companyId, language }) => {
-  const [surveyStructure, setSurveyStructure] = useState([]);
+// adiciona sectionId como uma prop opcional
+const SurveyForm = ({ companyId, language, sectionId = null }) => {
+  const [surveyStructure, setSurveyStructure] = useState([]); // será um array de seções
   const [answers, setAnswers] = useState({});
   const [freeTextFeedback, setFreeTextFeedback] = useState('');
   const [guestIdentifier, setGuestIdentifier] = useState('');
@@ -15,9 +16,18 @@ const SurveyForm = ({ companyId, language }) => {
   useEffect(() => {
     const fetchSurvey = async () => {
       try {
-        const data = await PublicSurveyService.getSurveyQuestions(companyId, language);
+        let data;
+        if (sectionId) {
+          // se sectionId estiver presente, busca APENAS aquela seção
+          const singleSection = await PublicSurveyService.getSingleSurveySection(companyId, language, sectionId);
+          data = [singleSection]; // coloca a única seção em um array para o map funcionar
+        } else {
+          // caso contrário, busca TODAS as seções (comportamento original)
+          data = await PublicSurveyService.getSurveyQuestions(companyId, language);
+        }
         setSurveyStructure(data);
 
+        // inicializa o estado de respostas e de 'denyUse' com base na estrutura carregada
         const initialAnswers = {};
         const initialDenied = {};
         data.forEach(section => {
@@ -28,7 +38,6 @@ const SurveyForm = ({ companyId, language }) => {
             initialDenied[section.id] = false;
           }
         });
-
         setAnswers(initialAnswers);
         setDeniedServices(initialDenied);
         setLoading(false);
@@ -39,11 +48,11 @@ const SurveyForm = ({ companyId, language }) => {
     };
 
     fetchSurvey();
-  }, [companyId, language]);
+  }, [companyId, language, sectionId]); // sectionId agora é uma dependência
 
   const handleAnswerChange = (questionId, value) => {
-    setAnswers(prev => ({
-      ...prev,
+    setAnswers(prevAnswers => ({
+      ...prevAnswers,
       [questionId]: value,
     }));
   };
@@ -57,8 +66,8 @@ const SurveyForm = ({ companyId, language }) => {
     if (isChecked) {
       const sectionQuestions = surveyStructure.find(s => s.id === sectionId)?.questions;
       if (sectionQuestions) {
-        setAnswers(prev => {
-          const newAnswers = { ...prev };
+        setAnswers(prevAnswers => {
+          const newAnswers = { ...prevAnswers };
           sectionQuestions.forEach(q => {
             newAnswers[q.id] = '';
           });
@@ -79,7 +88,10 @@ const SurveyForm = ({ companyId, language }) => {
     for (const section of surveyStructure) {
       const sectionDenied = deniedServices[section.id];
       for (const question of section.questions) {
-        const isMandatory = question.mandatory;
+        // validação de pergunta obrigatória (necessita que o backend envie 'mandatory' no PublicQuestionDto)
+        // se 'mandatory' não for retornado pela API pública, a validação de obrigatoriedade será apenas no backend.
+        // mandatory' está disponível no objeto 'question'.
+        const isMandatory = question.mandatory; // API pública retorna este campo
 
         if (isMandatory && !sectionDenied && (!answers[question.id] || answers[question.id].trim() === '')) {
           setError(`Please answer the mandatory question: "${question.label}" in section "${section.name}".`);
@@ -120,34 +132,20 @@ const SurveyForm = ({ companyId, language }) => {
     }
   };
 
-  if (loading) return <p>Loading survey...</p>;
-  if (error && !submissionStatus) return <p className="text-danger">Error: {error}</p>;
+  if (loading) return <p className="text-center my-5">Loading survey...</p>;
+  if (error && !submissionStatus) return <p className="alert alert-danger text-center">Error: {error}</p>;
 
   if (submissionStatus === 'success') {
-    return (
-      <div className="alert alert-success text-center py-5">
-        <h3>🎉 Thank you for your feedback!</h3>
-        <p>Your response has been submitted successfully.</p>
-      </div>
-    );
+    return <div className="alert alert-success text-center py-5"><h3>Thank you for your feedback! Your response has been submitted.</h3></div>;
   }
 
   return (
-    <div className="container my-5">
-      <h2 className="text-center mb-1">Guest Satisfaction Survey</h2>
-      <p className="text-center text-muted mb-4">
-        Please rate your experience and help us improve our services.
-      </p>
-
-      {submissionStatus === 'error' && (
-        <div className="alert alert-danger">{error}</div>
-      )}
-
+    <div className="container my-4">
+      <h2 className="mb-4 text-center">Guest Satisfaction Survey</h2>
+      {submissionStatus === 'error' && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label htmlFor="guestIdentifier" className="form-label">
-            <i className="bi bi-person-vcard me-2"></i>Your Identifier (optional):
-          </label>
+        <div className="mb-3">
+          <label htmlFor="guestIdentifier" className="form-label">Your Identifier (optional):</label>
           <input
             type="text"
             className="form-control"
@@ -159,11 +157,11 @@ const SurveyForm = ({ companyId, language }) => {
         </div>
 
         {surveyStructure.map(section => (
-          <div key={section.id} className="card mb-4 shadow-sm border-0">
-            <div className="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-              <h5 className="mb-0">{section.icon || '📌'} {section.name}</h5>
+          <div key={section.id} className="card mb-4">
+            <div className="card-header bg-light">
+              <h4 className="mb-0">{section.name}</h4>
               {section.denyUse && (
-                <div className="form-check mb-0">
+                <div className="form-check mt-2">
                   <input
                     type="checkbox"
                     className="form-check-input"
@@ -172,7 +170,7 @@ const SurveyForm = ({ companyId, language }) => {
                     onChange={(e) => handleDenyUseChange(section.id, e.target.checked)}
                   />
                   <label className="form-check-label" htmlFor={`denyUseSection-${section.id}`}>
-                    Didn't use this service
+                    Não utilizei este serviço/setor
                   </label>
                 </div>
               )}
@@ -189,31 +187,25 @@ const SurveyForm = ({ companyId, language }) => {
                   />
                 ))
               ) : (
-                <p className="text-muted fst-italic">You marked that you didn’t use this service. No questions will be shown.</p>
+                <p className="text-muted">Você marcou que não utilizou este serviço/setor. Nenhuma pergunta será exibida.</p>
               )}
             </div>
           </div>
         ))}
 
-        <div className="mb-4">
-          <label htmlFor="freeTextFeedback" className="form-label">
-            <i className="bi bi-chat-left-text me-2"></i>Additional Feedback (optional):
-          </label>
+        <div className="mb-3">
+          <label htmlFor="freeTextFeedback" className="form-label">Additional Feedback (optional):</label>
           <textarea
-            className="form-control rounded"
+            className="form-control"
             id="freeTextFeedback"
             rows="4"
-            maxLength={500}
             value={freeTextFeedback}
             onChange={(e) => setFreeTextFeedback(e.target.value)}
-            placeholder="Share any additional thoughts or suggestions here..."
+            placeholder="Write your additional comments here..."
           ></textarea>
-          <small className="text-muted">{freeTextFeedback.length}/500 characters</small>
         </div>
 
-        <button type="submit" className="btn btn-success btn-lg w-100">
-          <i className="bi bi-send-fill me-2"></i> Submit Feedback
-        </button>
+        <button type="submit" className="btn btn-primary btn-lg w-100">Submit Feedback</button>
       </form>
     </div>
   );

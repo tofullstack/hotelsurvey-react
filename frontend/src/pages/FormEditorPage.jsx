@@ -8,10 +8,12 @@ const FormEditorPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     language: '',
-    companyId: '', // assuma que um admin saberá o companyId ou haverá um seletor
+    companyId: '',
     denyUse: false,
     active: true,
-    questions: [{ id: null, label: '', type: 'TEXT', mandatory: false, options: '' }]
+    // questions.options will now be a List<String> from backend
+    // When creating new question, initialize options as an empty array
+    questions: [{ id: null, label: '', type: 'TEXT', mandatory: false, options: [] }]
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -23,7 +25,12 @@ const FormEditorPage = () => {
       const fetchForm = async () => {
         try {
           const data = await FormService.getFormById(formId);
-          setFormData(data);
+          // Ensure options is an array for existing data
+          const formattedQuestions = data.questions.map(q => ({
+            ...q,
+            options: q.options || [] // Ensure it's an array, even if null from backend before this change
+          }));
+          setFormData({ ...data, questions: formattedQuestions });
           setLoading(false);
         } catch (err) {
           setError(err.response?.data?.message || 'Failed to load form for editing.');
@@ -55,10 +62,19 @@ const FormEditorPage = () => {
     setFormData(prev => ({ ...prev, questions: newQuestions }));
   };
 
+  // NEW: Handle change for options field (which is now a List<String>)
+  const handleOptionsChange = (index, value) => {
+    const newQuestions = [...formData.questions];
+    // Convert the comma-separated string from the input field back into an array
+    newQuestions[index].options = value.split(',').map(item => item.trim()).filter(item => item !== '');
+    setFormData(prev => ({ ...prev, questions: newQuestions }));
+  };
+
   const addQuestion = () => {
     setFormData(prev => ({
       ...prev,
-      questions: [...prev.questions, { id: null, label: '', type: 'TEXT', mandatory: false, options: '' }]
+      // NEW: Initialize new question options as an empty array
+      questions: [...prev.questions, { id: null, label: '', type: 'TEXT', mandatory: false, options: [] }]
     }));
   };
 
@@ -71,12 +87,18 @@ const FormEditorPage = () => {
     e.preventDefault();
     setError(null);
     try {
+      // Ensure companyId is number before sending
+      const dataToSend = {
+        ...formData,
+        companyId: parseInt(formData.companyId)
+      };
+
       if (isNewForm) {
-        await FormService.createForm(formData);
+        await FormService.createForm(dataToSend);
       } else {
-        await FormService.updateForm(formId, formData);
+        await FormService.updateForm(formId, dataToSend);
       }
-      navigate('/admin/forms'); // redireciona de volta para a lista após salvar
+      navigate('/admin/forms');
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save form.');
     }
@@ -132,8 +154,16 @@ const FormEditorPage = () => {
             </div>
             {q.type === 'CHOICE' || q.type === 'SCALE' ? (
               <div className="mb-3">
-                <label htmlFor={`options-${index}`} className="form-label">Options (comma-separated for Choice/Scale):</label>
-                <input type="text" className="form-control" id={`options-${index}`} name="options" value={q.options} onChange={(e) => handleQuestionChange(index, e)} />
+                <label htmlFor={`options-${index}`} className="form-label">Options (comma-separated):</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  id={`options-${index}`}
+                  name="options"
+                  // Display options as a comma-separated string for editing
+                  value={q.options ? q.options.join(', ') : ''}
+                  onChange={(e) => handleOptionsChange(index, e.target.value)} // Use new handler
+                />
               </div>
             ) : null}
             <div className="form-check mb-3">

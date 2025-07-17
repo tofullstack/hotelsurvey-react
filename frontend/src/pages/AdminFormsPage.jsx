@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import FormService from '../services/form.service';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 const AdminFormsPage = () => {
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { logout } = useAuth();
 
   useEffect(() => {
     const fetchForms = async () => {
@@ -28,9 +30,8 @@ const AdminFormsPage = () => {
   };
 
   const getSurveyFrontendUrl = (form) => {
-    // a URL base do frontend onde o SurveyViewPage é renderizado
-    // ajuste 'http://localhost:5173' para o domínio do frontend em produção
-    return `http://localhost:5173/survey/${form.companyId}/${form.language}`;
+    // A URL AGORA INCLUI O ID DA SEÇÃO (FORM.ID)
+    return `http://localhost:5173/survey/${form.companyId}/${form.language}/${form.id}`;
   };
 
   const handleDeactivate = async (formId) => {
@@ -58,9 +59,12 @@ const AdminFormsPage = () => {
 
   return (
     <div className="container my-4">
-      <h2 className="mb-4 text-center">Manage Survey Forms</h2>
-      <div className="d-flex justify-content-end mb-3">
-        <Link to="/admin/forms/new" className="btn btn-success">Create New Form</Link>
+      <div className="d-flex justify-content-between align-items-center mb-4">
+        <h2 className="mb-0">Manage Survey Forms</h2>
+        <div>
+          <button className="btn btn-danger me-2" onClick={logout}>Logout</button>
+          <Link to="/admin/forms/new" className="btn btn-success">Create New Form</Link>
+        </div>
       </div>
 
       <ul className="list-group">

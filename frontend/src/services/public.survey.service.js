@@ -13,6 +13,18 @@ const PublicSurveyService = {
     }
   },
 
+    // NOVO MÉTODO para tratamento do QRCODE
+    getSingleSurveySection: async (companyId, language, sectionId) => {
+      try {
+        const response = await api.get(`${PUBLIC_SURVEY_BASE_URL}/questions/${companyId}/${language}/${sectionId}`);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching single survey section:', error.response?.data || error.message);
+        throw error;
+      }
+    },
+  
+
   submitSurveyResponse: async (surveyData) => {
     try {
       const response = await api.post(`${PUBLIC_SURVEY_BASE_URL}/submit-response`, surveyData);

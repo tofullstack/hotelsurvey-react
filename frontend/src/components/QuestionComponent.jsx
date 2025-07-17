@@ -3,10 +3,11 @@ import React from "react";
 const QuestionComponent = ({ question, value, onChange, isSectionDenied }) => {
   if (isSectionDenied) return null;
 
-  const questionType = question.questionType || question.type;
+  // Usa question.type para consistência, assume que o DTO público agora o tem
+  const questionType = question.type?.toUpperCase();
 
   const renderInput = () => {
-    switch (questionType?.toUpperCase()) {
+    switch (questionType) {
       case 'TEXT':
         return (
           <textarea
@@ -18,23 +19,23 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied }) => {
           />
         );
 
-      case 'CHOICE': {
-        const options = question.options
-          ? question.options[0].split('-').map(opt => opt.trim())
-          : [];
-        return (
-          <select
-            className="form-select"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-          >
-            <option value="">Selecione uma opção</option>
-            {options.map((opt, index) => (
-              <option key={index} value={opt}>{opt}</option>
-            ))}
-          </select>
-        );
-      }
+        case 'CHOICE': {
+          const options = question.options
+            ? question.options[0].split('-').map(opt => opt.trim())
+            : [];
+          return (
+            <select
+              className="form-select"
+              value={value || ''}
+              onChange={(e) => onChange(e.target.value)}
+            >
+              <option value="">Selecione uma opção</option>
+              {options.map((opt, index) => (
+                <option key={index} value={opt}>{opt}</option>
+              ))}
+            </select>
+          );
+        }
 
       case 'YES_NO':
         return (
@@ -68,24 +69,28 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied }) => {
           </div>
         );
 
-      case 'SCALE': {
-        const scaleOptions = question.options
-          ? question.options[0].split('-').map(opt => opt.trim())
-          : [];
-
-        return (
-          <select
-            className="form-select"
-            value={value || ''}
-            onChange={(e) => onChange(e.target.value)}
-          >
-            <option value="">Selecione uma nota</option>
-            {scaleOptions.map((opt, index) => (
-              <option key={index} value={opt}>{opt}</option>
-            ))}
-          </select>
-        );
-      }
+  
+        case 'SCALE': {
+          const scaleOptions = question.options
+            ? question.options[0].split('-').map(opt => opt.trim())
+            : [];
+  
+          return (
+            <select
+              className="form-select"
+  
+  
+  
+              value={value || ''}
+              onChange={(e) => onChange(e.target.value)}
+            >
+              <option value="">Selecione uma nota</option>
+              {scaleOptions.map((opt, index) => (
+                <option key={index} value={opt}>{opt}</option>
+              ))}
+            </select>
+          );
+        }
 
       default:
         return <p className="text-muted">Tipo de pergunta desconhecido.</p>;
