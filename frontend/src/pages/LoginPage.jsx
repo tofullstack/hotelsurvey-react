@@ -8,16 +8,21 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-  const { login: authLogin } = useAuth(); // renomeia o método login do contexto
+  const { login: authLogin } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     try {
       const response = await AuthService.login({ login, password });
-      authLogin(response.token); // usa o método login do AuthContext
-      // redireciona para o admin após o login bem-sucedido
-      navigate('/admin/forms'); //ou para a tela de troca de senha se mustChangePassword for true
+      authLogin(response.token); 
+
+     
+      if (response.mustChangePassword) {
+        navigate('/change-password'); // redireciona para a pagina de troca de senha
+      } else {
+        navigate('/admin/forms'); // default admin dashboard
+      }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
     }

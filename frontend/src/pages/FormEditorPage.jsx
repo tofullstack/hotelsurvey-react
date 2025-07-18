@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import FormService from '../services/form.service';
+import CompanyService from '../services/company.service'; // Import CompanyService
 
 const FormEditorPage = () => {
   const { formId } = useParams();
@@ -8,40 +9,40 @@ const FormEditorPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     language: '',
-    companyId: '',
+    companyId: '', // guarda o id da empresa
     denyUse: false,
     active: true,
-    // questions.options will now be a List<String> from backend
-    // When creating new question, initialize options as an empty array
     questions: [{ id: null, label: '', type: 'TEXT', mandatory: false, options: [] }]
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isNewForm, setIsNewForm] = useState(true);
+  const [companies, setCompanies] = useState([]); 
 
   useEffect(() => {
-    if (formId) {
-      setIsNewForm(false);
-      const fetchForm = async () => {
-        try {
+    const fetchData = async () => {
+      try {
+        const fetchedCompanies = await CompanyService.getAllCompanies();
+        setCompanies(fetchedCompanies);
+
+        if (formId) {
+          setIsNewForm(false);
           const data = await FormService.getFormById(formId);
-          // Ensure options is an array for existing data
           const formattedQuestions = data.questions.map(q => ({
             ...q,
-            options: q.options || [] // Ensure it's an array, even if null from backend before this change
+            options: q.options || []
           }));
           setFormData({ ...data, questions: formattedQuestions });
-          setLoading(false);
-        } catch (err) {
-          setError(err.response?.data?.message || 'Failed to load form for editing.');
-          setLoading(false);
+        } else {
+          setIsNewForm(true);
         }
-      };
-      fetchForm();
-    } else {
-      setLoading(false);
-      setIsNewForm(true);
-    }
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to load data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, [formId]);
 
   const handleInputChange = (e) => {
@@ -62,10 +63,8 @@ const FormEditorPage = () => {
     setFormData(prev => ({ ...prev, questions: newQuestions }));
   };
 
-  // NEW: Handle change for options field (which is now a List<String>)
   const handleOptionsChange = (index, value) => {
     const newQuestions = [...formData.questions];
-    // Convert the comma-separated string from the input field back into an array
     newQuestions[index].options = value.split(',').map(item => item.trim()).filter(item => item !== '');
     setFormData(prev => ({ ...prev, questions: newQuestions }));
   };
@@ -73,7 +72,6 @@ const FormEditorPage = () => {
   const addQuestion = () => {
     setFormData(prev => ({
       ...prev,
-      // NEW: Initialize new question options as an empty array
       questions: [...prev.questions, { id: null, label: '', type: 'TEXT', mandatory: false, options: [] }]
     }));
   };
@@ -87,10 +85,9 @@ const FormEditorPage = () => {
     e.preventDefault();
     setError(null);
     try {
-      // Ensure companyId is number before sending
       const dataToSend = {
         ...formData,
-        companyId: parseInt(formData.companyId)
+        companyId: parseInt(formData.companyId) // garante que companyId é um number
       };
 
       if (isNewForm) {
@@ -104,7 +101,7 @@ const FormEditorPage = () => {
     }
   };
 
-  if (loading) return <p className="text-center mt-5">Loading form...</p>;
+  if (loading) return <p className="text-center mt-5">Loading form data and companies...</p>;
   if (error) return <p className="alert alert-danger">{error}</p>;
 
   return (
@@ -120,8 +117,13 @@ const FormEditorPage = () => {
           <input type="text" className="form-control" id="language" name="language" value={formData.language} onChange={handleInputChange} required />
         </div>
         <div className="mb-3">
-          <label htmlFor="companyId" className="form-label">Company ID:</label>
-          <input type="number" className="form-control" id="companyId" name="companyId" value={formData.companyId} onChange={handleInputChange} required />
+          <label htmlFor="companyId" className="form-label">Company:</label>
+          <select className="form-select" id="companyId" name="companyId" value={formData.companyId} onChange={handleInputChange} required>
+            <option value="">Select a Company</option>
+            {companies.map(company => (
+              <option key={company.id} value={company.id}>{company.name}</option>
+            ))}
+          </select>
         </div>
         <div className="form-check mb-3">
           <input type="checkbox" className="form-check-input" id="denyUse" name="denyUse" checked={formData.denyUse} onChange={handleInputChange} />
@@ -160,9 +162,8 @@ const FormEditorPage = () => {
                   className="form-control"
                   id={`options-${index}`}
                   name="options"
-                  // Display options as a comma-separated string for editing
                   value={q.options ? q.options.join(', ') : ''}
-                  onChange={(e) => handleOptionsChange(index, e.target.value)} // Use new handler
+                  onChange={(e) => handleOptionsChange(index, e.target.value)}
                 />
               </div>
             ) : null}

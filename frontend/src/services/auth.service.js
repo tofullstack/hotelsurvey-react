@@ -42,6 +42,26 @@ const AuthService = {
       console.error('Get users error:', error.response?.data || error.message);
       throw error;
     }
+  },
+
+  deactivateUser: async (userId) => {
+    try {
+      const response = await api.put(`${AUTH_BASE_URL}/users/${userId}/deactivate`);
+      return response.data;
+    } catch (error) {
+      console.error('Deactivate user error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  activateUser: async (userId) => { 
+    try {
+      const response = await api.put(`${AUTH_BASE_URL}/users/${userId}/activate`);
+      return response.data;
+    } catch (error) {
+      console.error('Activate user error:', error.response?.data || error.message);
+      throw error;
+    }
   }
 };
 
