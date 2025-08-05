@@ -71,7 +71,22 @@ const FormService = {
       console.error('Error previewing form:', error.response?.data || error.message);
       throw error;
     }
-  }
-};
+  },
+
+  //para filtro de pesquisa de form baseado em nome da empresa e status
+  searchForms: async (companyName, status) => {
+    try {
+      const params = new URLSearchParams();
+      if(companyName) params.append('companyName', companyName);
+      if(status) params.append('status', status);
+      const response = await api.get(`${FORM_ADMIN_BASE_URL}/search`, { params });
+       return response.data;
+
+    } catch (error) {
+      console.error('Erro ao buscar pelos formulários com os filtros selecionados:', error.response?.data || error.message);
+    }
+}
+
+}
 
 export default FormService;

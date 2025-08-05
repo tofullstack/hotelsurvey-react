@@ -20,9 +20,7 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied }) => {
         );
 
         case 'CHOICE': {
-          const options = question.options
-            ? question.options[0].split('-').map(opt => opt.trim())
-            : [];
+          const options = question.options || [];
           return (
             <select
               className="form-select"
@@ -71,9 +69,7 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied }) => {
 
   
         case 'SCALE': {
-          const scaleOptions = question.options
-            ? question.options[0].split('-').map(opt => opt.trim())
-            : [];
+          const scaleOptions = question.options || [];
   
           return (
             <select

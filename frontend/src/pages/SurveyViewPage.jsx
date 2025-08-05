@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import SurveyForm from '../components/SurveyForm';
 
 const SurveyViewPage = () => {
-  const { companyId, language, sectionId } = useParams(); // Agora captura sectionId também
+  const { companyId, language, sectionId } = useParams();
 
   // sectionId é opcional se você ainda quiser a rota para todas as seções
   if (!companyId || !language) {
@@ -13,7 +13,7 @@ const SurveyViewPage = () => {
   return (
     <div className="survey-view-page">
       <h1 className="text-center my-4">Hotel Survey</h1>
-      {/* Passa sectionId para SurveyForm */}
+      {/* psssa sectionId para SurveyForm */}
       <SurveyForm companyId={companyId} language={language} sectionId={sectionId} />
     </div>
   );

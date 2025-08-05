@@ -10,6 +10,21 @@ const AdminFormsPage = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const { logout } = useAuth();
+  const [searchCompany, setSearchCompany] = useState('');
+  const [filterStatus, setFilterStatus] = useState('todos');
+
+  const handleSearch = async () => {
+    setLoading(true);
+    try {
+      const results = await FormService.searchForms(searchCompany, filterStatus);
+      setForms(results);
+      setError(null);
+    } catch (err) {
+      setError('Erro ao buscar formulários com filtros.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const fetchForms = async () => {
@@ -18,7 +33,7 @@ const AdminFormsPage = () => {
         setForms(data);
         setLoading(false);
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load forms.');
+        setError(err.response?.data?.message || 'Falha ao carregar formulários.');
         setLoading(false);
       }
     };
@@ -35,12 +50,12 @@ const AdminFormsPage = () => {
   };
 
   const handleDeactivate = async (formId) => {
-    if (window.confirm("Are you sure you want to deactivate this form?")) {
+    if (window.confirm("Certeza que deseja desativar este formulário?")) {
       try {
         await FormService.deactivateForm(formId);
         setForms(forms.map(f => f.id === formId ? { ...f, active: false } : f));
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to deactivate form.');
+        setError(err.response?.data?.message || 'Falha ao desativar formulário.');
       }
     }
   };
@@ -50,56 +65,77 @@ const AdminFormsPage = () => {
       await FormService.activateForm(formId);
       setForms(forms.map(f => f.id === formId ? { ...f, active: true } : f));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to activate form.');
+      setError(err.response?.data?.message || 'Falha ao ativar formulário.');
     }
   };
 
-  if (loading) return <p className="text-center mt-5">Loading forms...</p>;
+  if (loading) return <p className="text-center mt-5">Carregando formulários...</p>;
   if (error) return <p className="alert alert-danger">{error}</p>;
 
   return (
     <div className="container my-4">
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="mb-0">Manage Survey Forms</h2>
+        <h2 className="mb-0">Gerenciamento Formulários de Pesquisa</h2>
         <div>
           <button className="btn btn-danger me-2" onClick={logout}>Logout</button>
-          <Link to="/admin/forms/new" className="btn btn-success">Create New Form</Link>
+          <Link to="/admin/forms/new" className="btn btn-success">Novo Formulário</Link>
         </div>
       </div>
+      <div className="mb-3 d-flex gap-2">
+  <input
+    type="text"
+    className="form-control"
+    placeholder="Buscar por nome da empresa"
+    value={searchCompany}
+    onChange={(e) => setSearchCompany(e.target.value)}
+  />
+  <select
+    className="form-select"
+    value={filterStatus}
+    onChange={(e) => setFilterStatus(e.target.value)}
+  >
+    <option value="todos">Todos</option>
+    <option value="ativos">Ativos</option>
+    <option value="inativos">Inativos</option>
+  </select>
+  <button className="btn btn-primary" onClick={handleSearch}>Buscar</button>
+</div>
+
+
 
       <ul className="list-group">
         {forms.length === 0 ? (
-          <li className="list-group-item text-center text-muted">No forms found.</li>
+          <li className="list-group-item text-center text-muted">Nenhum formulário encontrado.</li>
         ) : (
           forms.map(form => (
             <li key={form.id} className="list-group-item d-flex justify-content-between align-items-center">
               <div>
                 <h5>{form.name} ({form.language})</h5>
-                <small>Company ID: {form.companyId} | Status: {form.active ? 'Active' : 'Inactive'}</small>
+                <small>Empresa ID {form.companyId} | Status: {form.active ? 'Ativo' : 'Inativo'}</small>
               </div>
               <div>
-                <Link to={`/admin/forms/edit/${form.id}`} className="btn btn-sm btn-info me-2">Edit</Link>
+                <Link to={`/admin/forms/edit/${form.id}`} className="btn btn-sm btn-info me-2">Editar</Link>
                 <Link to={`/admin/forms/preview/${form.id}`} className="btn btn-sm btn-secondary me-2">Preview</Link>
                 {form.active ? (
                   <button
                     className="btn btn-sm btn-warning me-2"
                     onClick={() => handleDeactivate(form.id)}
                   >
-                    Deactivate
+                    Desativar
                   </button>
                 ) : (
                   <button
                     className="btn btn-sm btn-success me-2"
                     onClick={() => handleActivate(form.id)}
                   >
-                    Activate
+                    Ativar
                   </button>
                 )}
                 <button
                   className="btn btn-sm btn-primary"
                   onClick={() => handleGenerateQr(form)}
                 >
-                  Generate QR Code
+                  Gerar QR Code
                 </button>
               </div>
             </li>
@@ -109,7 +145,7 @@ const AdminFormsPage = () => {
 
       {selectedFormForQr && (
         <div className="mt-4 p-3 border rounded bg-light">
-          <h5>QR Code for: {selectedFormForQr.name} ({selectedFormForQr.language})</h5>
+          <h5>QR Code para: {selectedFormForQr.name} ({selectedFormForQr.language})</h5>
           <QRCodeDisplay url={getSurveyFrontendUrl(selectedFormForQr)} size={256} />
         </div>
       )}

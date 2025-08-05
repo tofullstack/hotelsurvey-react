@@ -19,7 +19,7 @@ const AdminCompaniesPage = () => {
       const data = await CompanyService.getAllCompanies();
       setCompanies(data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load companies.');
+      setError(err.response?.data?.message || 'Falha ao carregar empresas');
     } finally {
       setLoading(false);
     }
@@ -42,7 +42,7 @@ const AdminCompaniesPage = () => {
       setShowCreateForm(false);
       fetchCompanies(); // recarrega empresas
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to save company.');
+      setError(err.response?.data?.message || 'Falha ao salvar empresa.');
     }
   };
 
@@ -52,27 +52,27 @@ const AdminCompaniesPage = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this company? This action might affect associated forms and users.")) {
+    if (window.confirm("Você tem certeza que deseja deletar essa empresa? Essa ação pode afetar formulários e usuários relacionados.")) {
       try {
         await CompanyService.deleteCompany(id);
         fetchCompanies(); // recarrega empresas
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to delete company.');
+        setError(err.response?.data?.message || 'Falha ao deletar empresa..');
       }
     }
   };
 
-  if (loading) return <p className="text-center mt-5">Loading companies...</p>;
+  if (loading) return <p className="text-center mt-5">Carregando empresas...</p>;
   if (error && !showCreateForm) return <p className="alert alert-danger">{error}</p>;
 
   return (
     <div className="container my-4">
-      <h2 className="mb-4 text-center">Manage Companies (Hotels)</h2>
+      <h2 className="mb-4 text-center">Gerenciar Empresas (Hotels)</h2>
       {error && showCreateForm && <div className="alert alert-danger mb-3">{error}</div>}
 
       <div className="d-flex justify-content-end mb-3">
         <button className="btn btn-primary" onClick={() => { setShowCreateForm(!showCreateForm); setCurrentCompany({ id: null, name: '' }); }}>
-          {showCreateForm ? 'Hide Form' : 'Create New Company'}
+          {showCreateForm ? 'Hide Form' : 'Adicionar Nova Empresa'}
         </button>
       </div>
 
@@ -81,7 +81,7 @@ const AdminCompaniesPage = () => {
           <h4 className="mb-3">{currentCompany.id ? 'Edit Company' : 'Create Company'}</h4>
           <form onSubmit={handleFormSubmit}>
             <div className="mb-3">
-              <label htmlFor="companyName" className="form-label">Company Name:</label>
+              <label htmlFor="companyName" className="form-label">Nome da Empresa:</label>
               <input type="text" className="form-control" id="companyName" name="name" value={currentCompany.name} onChange={handleFormChange} required />
             </div>
             <button type="submit" className="btn btn-success w-100">
@@ -93,7 +93,7 @@ const AdminCompaniesPage = () => {
 
       <ul className="list-group">
         {companies.length === 0 ? (
-          <li className="list-group-item text-center text-muted">No companies found.</li>
+          <li className="list-group-item text-center text-muted">Nenhuma empresa encontrada.</li>
         ) : (
           companies.map(company => (
             <li key={company.id} className="list-group-item d-flex justify-content-between align-items-center">
@@ -102,8 +102,8 @@ const AdminCompaniesPage = () => {
                 <small>ID: {company.id}</small>
               </div>
               <div>
-                <button className="btn btn-sm btn-info me-2" onClick={() => handleEdit(company)}>Edit</button>
-                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(company.id)}>Delete</button>
+                <button className="btn btn-sm btn-info me-2" onClick={() => handleEdit(company)}>Editar</button>
+                <button className="btn btn-sm btn-danger" onClick={() => handleDelete(company.id)}>Deletar</button>
               </div>
             </li>
           ))
