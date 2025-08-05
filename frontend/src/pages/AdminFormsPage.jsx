@@ -49,12 +49,12 @@ const AdminFormsPage = () => {
   };
 
   const handleDeactivate = async (formId) => {
-    if (window.confirm("Are you sure you want to deactivate this form?")) {
+    if (window.confirm("Tem certeza que deseja desativar esse formulário?")) {
       try {
         await FormService.deactivateForm(formId);
         setForms(forms.map(f => f.id === formId ? { ...f, active: false } : f));
       } catch (err) {
-        setError(err.response?.data?.message || 'Failed to deactivate form.');
+        setError(err.response?.data?.message || 'Falha ao desativar formulário.');
       }
     }
   };
@@ -64,7 +64,7 @@ const AdminFormsPage = () => {
       await FormService.activateForm(formId);
       setForms(forms.map(f => f.id === formId ? { ...f, active: true } : f));
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to activate form.');
+      setError(err.response?.data?.message || 'Falha ao ativar formulário.');
     }
   };
 
@@ -79,9 +79,9 @@ const AdminFormsPage = () => {
   return (
     <Container maxWidth="md" sx={{ my: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" component="h2">Manage Survey Forms</Typography>
+        <Typography variant="h4" component="h2">Formulários de Pesquisa</Typography>
         <Button component={Link} to="/admin/forms/new" variant="contained" color="success" startIcon={<AddIcon />}>
-          Create New Form
+          Novo Formulário
         </Button>
       </Box>
 
@@ -89,7 +89,7 @@ const AdminFormsPage = () => {
 
       <List>
         {forms.length === 0 ? (
-          <Typography variant="body1" align="center" color="text.secondary">No forms found.</Typography>
+          <Typography variant="body1" align="center" color="text.secondary">Nenhum formulário encontrado.</Typography>
         ) : (
           forms.map(form => (
             <Card key={form.id} sx={{ mb: 2, boxShadow: 1 }}>
@@ -100,25 +100,25 @@ const AdminFormsPage = () => {
                       primary={<Typography variant="h6">{form.name} ({form.language})</Typography>}
                       secondary={
                         <Typography variant="body2" color="text.secondary">
-                          Company ID: {form.companyId} | Status: {form.active ? 'Active' : 'Inactive'}
+                          Empresa: {form.companyId} | Status: {form.active ? 'Ativo' : 'Inativo'}
                         </Typography>
                       }
                     />
                   </Grid>
                   <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, flexWrap: 'wrap', gap: 1 }}>
                     <Button component={Link} to={`/admin/forms/edit/${form.id}`} variant="outlined" color="primary" startIcon={<EditIcon />}>
-                      Edit
+                      Editar
                     </Button>
                     <Button component={Link} to={`/admin/forms/preview/${form.id}`} variant="outlined" color="secondary" startIcon={<VisibilityIcon />}>
                       Preview
                     </Button>
                     {form.active ? (
                       <Button variant="outlined" color="warning" onClick={() => handleDeactivate(form.id)} startIcon={<PauseIcon />}>
-                        Deactivate
+                        Desativar
                       </Button>
                     ) : (
                       <Button variant="outlined" color="success" onClick={() => handleActivate(form.id)} startIcon={<PlayArrowIcon />}>
-                        Activate
+                        Ativar
                       </Button>
                     )}
                     <Button variant="contained" color="info" onClick={() => handleGenerateQr(form)} startIcon={<QrCodeIcon />}>
@@ -134,7 +134,7 @@ const AdminFormsPage = () => {
 
       {selectedFormForQr && (
         <Box sx={{ mt: 4, p: 3, border: '1px solid', borderColor: 'grey.300', borderRadius: '4px' }}>
-          <Typography variant="h6" mb={2}>QR Code for: {selectedFormForQr.name} ({selectedFormForQr.language})</Typography>
+          <Typography variant="h6" mb={2}>QR Code para: {selectedFormForQr.name} ({selectedFormForQr.language})</Typography>
           <QRCodeDisplay url={getSurveyFrontendUrl(selectedFormForQr)} size={256} />
         </Box>
       )}

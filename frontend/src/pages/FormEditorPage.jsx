@@ -34,18 +34,18 @@ const FormEditorPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
-    language: "", // Idioma principal do formulário
+    language: "", // principal do formulário
     companyId: "",
     denyUse: false,
     active: true,
     questions: [
       {
-        label: "", // Este é o campo para a label primária da pergunta
+        label: "", //campo para a label primária da pergunta
         type: "TEXT",
         mandatory: false,
         deniable: false,
         options: "",
-        translations: [{ language: "", label: "" }], // Array para traduções adicionais
+        translations: [{ language: "", label: "" }], 
       },
     ],
   });
@@ -59,22 +59,21 @@ const FormEditorPage = () => {
       const fetchForm = async () => {
         try {
           const data = await FormService.getFormById(formId);
-          // Ao carregar para edição, converte o array de opções do backend
-          // de volta para uma string para exibir no TextField.
+ 
           const formattedQuestions = data.questions.map((q) => ({
             ...q,
             options: Array.isArray(q.options) ? q.options.join(", ") : "",
-            // Garante que 'translations' é um array, mesmo que venha nulo ou indefinido
+   
             translations:
               Array.isArray(q.translations) && q.translations.length > 0
                 ? q.translations
-                : [{ language: "", label: "" }], // Adiciona uma tradução vazia se não houver
+                : [{ language: "", label: "" }], 
           }));
           setFormData({ ...data, questions: formattedQuestions });
           setLoading(false);
         } catch (err) {
           setError(
-            err.response?.data?.message || "Failed to load form for editing."
+            err.response?.data?.message || "Falha ao carregar formulário para edição"
           );
           setLoading(false);
         }
@@ -166,16 +165,16 @@ const FormEditorPage = () => {
           formattedOptions = [];
         }
 
-        // Garante que a label primária da pergunta seja enviada
+        // label primária da pergunta seja enviada
         const questionLabel = q.label || "";
 
-        // Filtra traduções vazias
+        // filtra traduções vazias
         let filteredTranslations = q.translations.filter(
           (t) => t.language && t.label
         );
 
-        // Garante que a tradução para o idioma principal do formulário esteja presente
-        // Se o idioma principal do formulário (formData.language) não tiver uma tradução explícita
+        // garante que a tradução para o idioma principal do formulário esteja presente
+        // se o idioma principal do formulário (formData.language) não tiver uma tradução explícita
         // na lista, adicionamos uma usando a 'label' primária da pergunta.
         const defaultLanguageTranslationExists = filteredTranslations.some(
           (t) => t.language === formData.language
@@ -192,7 +191,7 @@ const FormEditorPage = () => {
           });
         }
 
-        // Se não houver traduções e houver uma label primária, cria uma tradução padrão
+        // se não houver traduções e houver uma label primária, cria uma tradução padrão
         if (
           filteredTranslations.length === 0 &&
           questionLabel &&
@@ -205,7 +204,7 @@ const FormEditorPage = () => {
         }
 
         return {
-          // Garante que a propriedade 'label' da pergunta seja enviada
+          // garante que a propriedade 'label' da pergunta seja enviada
           label: questionLabel,
           type: q.type,
           mandatory: q.mandatory ?? false,
@@ -231,7 +230,7 @@ const FormEditorPage = () => {
       }
       navigate("/admin/forms");
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to save form.");
+      setError(err.response?.data?.message || "Falha ao salvar formulário.");
     }
   };
 
@@ -246,7 +245,7 @@ const FormEditorPage = () => {
   return (
     <Container maxWidth="md" sx={{ my: 4 }}>
       <Typography variant="h4" component="h2" align="center" mb={4}>
-        {isNewForm ? "Create New Form" : `Edit Form: ${formData.name}`}
+        {isNewForm ? "Novo formulário" : `Editar Formulário: ${formData.name}`}
       </Typography>
 
       {error && (
@@ -260,7 +259,7 @@ const FormEditorPage = () => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Form Name"
+              label="Nome do Formulário"
               name="name"
               value={formData.name}
               onChange={handleInputChange}
@@ -270,7 +269,7 @@ const FormEditorPage = () => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Default Language (e.g., pt-BR, en-US)"
+              label="Idioma Padrão (e.g., pt-BR, en-US)"
               name="language"
               value={formData.language}
               onChange={handleInputChange}
@@ -280,7 +279,7 @@ const FormEditorPage = () => {
           <Grid item xs={12} sm={6}>
             <TextField
               fullWidth
-              label="Company ID"
+              label="Empresa ID"
               name="companyId"
               type="number"
               value={formData.companyId}
@@ -298,7 +297,7 @@ const FormEditorPage = () => {
                     name="denyUse"
                   />
                 }
-                label='Allow "Did not use service" option'
+                label='Permitir opção "Não utilizei este serviço"'
               />
               <FormControlLabel
                 control={
@@ -308,14 +307,14 @@ const FormEditorPage = () => {
                     name="active"
                   />
                 }
-                label="Active (publicly visible)"
+                label="Ativo (publicamente visivel)"
               />
             </FormGroup>
           </Grid>
         </Grid>
 
         <Typography variant="h5" component="h3" mt={4} mb={2}>
-          Questions
+          Perguntas
         </Typography>
 
         {formData.questions.map((q, index) => (
@@ -329,7 +328,7 @@ const FormEditorPage = () => {
                   mb: 2,
                 }}
               >
-                <Typography variant="h6">Question {index + 1}</Typography>
+                <Typography variant="h6">Pergunta {index + 1}</Typography>
                 <IconButton
                   onClick={() => removeQuestion(index)}
                   color="error"
@@ -343,7 +342,7 @@ const FormEditorPage = () => {
                 <Grid item xs={12} sm={8}>
                   <TextField
                     fullWidth
-                    label="Question Label (Primary)"
+                    label="Título da Pergunta"
                     name="label"
                     value={q.label}
                     onChange={(e) => handleQuestionChange(index, e)}
@@ -352,7 +351,7 @@ const FormEditorPage = () => {
                 </Grid>
                 <Grid item xs={12} sm={4}>
                   <FormControl fullWidth>
-                    <InputLabel id={`type-label-${index}`}>Type</InputLabel>
+                    <InputLabel id={`type-label-${index}`}>Tipo</InputLabel>
                     <Select
                       labelId={`type-label-${index}`}
                       name="type"
@@ -360,10 +359,10 @@ const FormEditorPage = () => {
                       label="Type"
                       onChange={(e) => handleQuestionChange(index, e)}
                     >
-                      <MenuItem value="TEXT">Text</MenuItem>
-                      <MenuItem value="CHOICE">Choice</MenuItem>
-                      <MenuItem value="YES_NO">Yes/No</MenuItem>
-                      <MenuItem value="SCALE">Scale</MenuItem>
+                      <MenuItem value="TEXT">Texto</MenuItem>
+                      <MenuItem value="CHOICE">Múltipla Escolha</MenuItem>
+                      <MenuItem value="YES_NO">Sim/Não</MenuItem>
+                      <MenuItem value="SCALE">Escala</MenuItem>
                     </Select>
                   </FormControl>
                 </Grid>
@@ -371,7 +370,7 @@ const FormEditorPage = () => {
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
-                      label="Options (comma-separated)"
+                      label="Opções (separados por vírgula)"
                       name="options"
                       value={q.options}
                       onChange={(e) => handleQuestionChange(index, e)}
@@ -388,7 +387,7 @@ const FormEditorPage = () => {
                           name="mandatory"
                         />
                       }
-                      label="Mandatory"
+                      label="Obrigatória"
                     />
                     <FormControlLabel
                       control={
@@ -398,7 +397,7 @@ const FormEditorPage = () => {
                           name="deniable"
                         />
                       }
-                      label="Deniable"
+                      label="Não utilizei este serviço"
                     />
                   </FormGroup>
                 </Grid>
@@ -418,14 +417,14 @@ const FormEditorPage = () => {
                   }}
                 >
                   <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                    Translations
+                    Traduções
                   </Typography>
                   <Button
                     onClick={() => addTranslation(index)}
                     startIcon={<AddIcon />}
                     size="small"
                   >
-                    Add Translation
+                    Adicionar Tradução
                   </Button>
                 </Box>
                 {q.translations.map((t, tIndex) => (
@@ -433,7 +432,7 @@ const FormEditorPage = () => {
                     <Grid item xs={12} sm={5}>
                       <TextField
                         fullWidth
-                        label="Language Code (e.g., pt-BR)"
+                        label="Código do Idioma (e.g., pt-BR)"
                         name="language"
                         value={t.language}
                         onChange={(e) =>
@@ -444,7 +443,7 @@ const FormEditorPage = () => {
                     <Grid item xs={12} sm={6}>
                       <TextField
                         fullWidth
-                        label="Translated Label"
+                        label="Título Traduzido"
                         name="label"
                         value={t.label}
                         onChange={(e) =>
@@ -479,7 +478,7 @@ const FormEditorPage = () => {
           onClick={addQuestion}
           sx={{ mb: 3 }}
         >
-          Add Question
+          Adicionar Pergunta
         </Button>
 
         <Button
@@ -490,7 +489,7 @@ const FormEditorPage = () => {
           fullWidth
           startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
         >
-          {isNewForm ? "Create Form" : "Save Changes"}
+          {isNewForm ? "Criar Formulário" : "Salvar Mudanças"}
         </Button>
       </Box>
     </Container>

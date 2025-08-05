@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import QuestionComponent from "./QuestionComponent";
 import PublicSurveyService from "../services/public.survey.service";
 import ConditionalTriggerService from '../services/conditional.trigger.service'; // Novo import
-import { useParams } from "react-router-dom";
+//import { useParams } from "react-router-dom";
 
 import {
   Container,
@@ -43,8 +43,8 @@ const style = {
   p: 4,
 };
 
-const SurveyForm = () => {
-  const { formId, language } = useParams();
+const SurveyForm = ({formId, language}) => {
+  //const { formId, language } = useParams();
 
   const [surveyStructure, setSurveyStructure] = useState(null);
   const [answers, setAnswers] = useState({});
@@ -77,6 +77,10 @@ const SurveyForm = () => {
     'ko-KR': '한국어 (Coreano)',
     'zh-CN': '中文 (Chinês)',
   };
+
+  console.log('formId na renderização:', formId);
+  console.log('language na renderização:', language);
+  console.log('selectedLanguage na renderização:', selectedLanguage);
 
   useEffect(() => {
     if (!formId || !selectedLanguage) {
@@ -130,8 +134,6 @@ const SurveyForm = () => {
     const nextAnswers = { ...answers, [questionId]: value };
     setAnswers(nextAnswers);
 
-    // --- LÓGICA DE TRIGGER AGORA CHAMA UMA NOVA API ---
-    // A chamada de API para o trigger agora é feita aqui
     try {
       const conditionalForms = await ConditionalTriggerService.getConditionalForms(
         questionId,
