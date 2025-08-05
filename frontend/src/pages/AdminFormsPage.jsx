@@ -2,6 +2,22 @@ import React, { useState, useEffect } from 'react';
 import FormService from '../services/form.service';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import { Link } from 'react-router-dom';
+import {
+  Container,
+  Box,
+  Typography,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  CircularProgress,
+  Alert,
+  Card,
+  CardContent,
+  CardActions,
+  Grid,
+} from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Visibility as VisibilityIcon, QrCode as QrCodeIcon, PlayArrow as PlayArrowIcon, Pause as PauseIcon } from '@mui/icons-material';
 
 const AdminFormsPage = () => {
   const [forms, setForms] = useState([]);
@@ -28,9 +44,8 @@ const AdminFormsPage = () => {
   };
 
   const getSurveyFrontendUrl = (form) => {
-    // a URL base do frontend onde o SurveyViewPage é renderizado
-    // ajuste 'http://localhost:5173' para o domínio do frontend em produção
-    return `http://localhost:5173/survey/${form.companyId}/${form.language}`;
+       const languageCode = form.language || 'pt-BR'; // Fallback para o idioma
+    return `http://localhost:5173/survey/${form.id}/${languageCode}`;
   };
 
   const handleDeactivate = async (formId) => {
@@ -53,63 +68,77 @@ const AdminFormsPage = () => {
     }
   };
 
-  if (loading) return <p className="text-center mt-5">Loading forms...</p>;
-  if (error) return <p className="alert alert-danger">{error}</p>;
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
-    <div className="container my-4">
-      <h2 className="mb-4 text-center">Manage Survey Forms</h2>
-      <div className="d-flex justify-content-end mb-3">
-        <Link to="/admin/forms/new" className="btn btn-success">Create New Form</Link>
-      </div>
+    <Container maxWidth="md" sx={{ my: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4" component="h2">Manage Survey Forms</Typography>
+        <Button component={Link} to="/admin/forms/new" variant="contained" color="success" startIcon={<AddIcon />}>
+          Create New Form
+        </Button>
+      </Box>
 
-      <ul className="list-group">
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
+
+      <List>
         {forms.length === 0 ? (
-          <li className="list-group-item text-center text-muted">No forms found.</li>
+          <Typography variant="body1" align="center" color="text.secondary">No forms found.</Typography>
         ) : (
           forms.map(form => (
-            <li key={form.id} className="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <h5>{form.name} ({form.language})</h5>
-                <small>Company ID: {form.companyId} | Status: {form.active ? 'Active' : 'Inactive'}</small>
-              </div>
-              <div>
-                <Link to={`/admin/forms/edit/${form.id}`} className="btn btn-sm btn-info me-2">Edit</Link>
-                <Link to={`/admin/forms/preview/${form.id}`} className="btn btn-sm btn-secondary me-2">Preview</Link>
-                {form.active ? (
-                  <button
-                    className="btn btn-sm btn-warning me-2"
-                    onClick={() => handleDeactivate(form.id)}
-                  >
-                    Deactivate
-                  </button>
-                ) : (
-                  <button
-                    className="btn btn-sm btn-success me-2"
-                    onClick={() => handleActivate(form.id)}
-                  >
-                    Activate
-                  </button>
-                )}
-                <button
-                  className="btn btn-sm btn-primary"
-                  onClick={() => handleGenerateQr(form)}
-                >
-                  Generate QR Code
-                </button>
-              </div>
-            </li>
+            <Card key={form.id} sx={{ mb: 2, boxShadow: 1 }}>
+              <CardContent>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item xs={12} sm={6}>
+                    <ListItemText
+                      primary={<Typography variant="h6">{form.name} ({form.language})</Typography>}
+                      secondary={
+                        <Typography variant="body2" color="text.secondary">
+                          Company ID: {form.companyId} | Status: {form.active ? 'Active' : 'Inactive'}
+                        </Typography>
+                      }
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, flexWrap: 'wrap', gap: 1 }}>
+                    <Button component={Link} to={`/admin/forms/edit/${form.id}`} variant="outlined" color="primary" startIcon={<EditIcon />}>
+                      Edit
+                    </Button>
+                    <Button component={Link} to={`/admin/forms/preview/${form.id}`} variant="outlined" color="secondary" startIcon={<VisibilityIcon />}>
+                      Preview
+                    </Button>
+                    {form.active ? (
+                      <Button variant="outlined" color="warning" onClick={() => handleDeactivate(form.id)} startIcon={<PauseIcon />}>
+                        Deactivate
+                      </Button>
+                    ) : (
+                      <Button variant="outlined" color="success" onClick={() => handleActivate(form.id)} startIcon={<PlayArrowIcon />}>
+                        Activate
+                      </Button>
+                    )}
+                    <Button variant="contained" color="info" onClick={() => handleGenerateQr(form)} startIcon={<QrCodeIcon />}>
+                      QR Code
+                    </Button>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
           ))
         )}
-      </ul>
+      </List>
 
       {selectedFormForQr && (
-        <div className="mt-4 p-3 border rounded bg-light">
-          <h5>QR Code for: {selectedFormForQr.name} ({selectedFormForQr.language})</h5>
+        <Box sx={{ mt: 4, p: 3, border: '1px solid', borderColor: 'grey.300', borderRadius: '4px' }}>
+          <Typography variant="h6" mb={2}>QR Code for: {selectedFormForQr.name} ({selectedFormForQr.language})</Typography>
           <QRCodeDisplay url={getSurveyFrontendUrl(selectedFormForQr)} size={256} />
-        </div>
+        </Box>
       )}
-    </div>
+    </Container>
   );
 };
 

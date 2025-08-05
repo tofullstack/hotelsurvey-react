@@ -1,105 +1,131 @@
+// QuestionComponent.js
 import React from "react";
+import {
+  FormControl,
+  FormLabel,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
+  TextField,
+  Select,
+  MenuItem,
+  Box,
+  Typography,
+  Rating,
+} from "@mui/material";
 
-const QuestionComponent = ({ question, value, onChange, isSectionDenied }) => {
-  if (isSectionDenied) return null;
+const QuestionComponent = ({ question, value, onChange, isSectionDenied, language }) => {
+  if (isSectionDenied) {
+    return null;
+  }
 
-  const questionType = question.questionType || question.type;
+  const questionType = question.type;
+
+  let translatedLabel = "Questão sem label";
+
+  // 1. Tentar encontrar a tradução no array 'translations' usando o idioma da URL
+  const translatedLabelObject = question.translations?.find(t => t.language === language);
+  if (translatedLabelObject) {
+    translatedLabel = translatedLabelObject.label;
+  }
+  // 2. Se a tradução específica não for encontrada, usar a label direta como fallback
+  else if (question.label) {
+    translatedLabel = question.label;
+  }
+
+  const options = question.options || [];
 
   const renderInput = () => {
     switch (questionType?.toUpperCase()) {
-      case 'TEXT':
+      case "TEXT":
         return (
-          <textarea
-            className="form-control"
-            value={value || ''}
+          <TextField
+            fullWidth
+            multiline
+            rows={3}
+            variant="outlined"
+            value={value || ""}
             onChange={(e) => onChange(e.target.value)}
             placeholder="Digite sua resposta..."
-            rows="3"
           />
         );
-
-      case 'CHOICE': {
-        const options = question.options
-          ? question.options[0].split('-').map(opt => opt.trim())
-          : [];
+      case "CHOICE":
         return (
-          <select
-            className="form-select"
-            value={value || ''}
+          <Select
+            fullWidth
+            variant="outlined"
+            value={value || ""}
             onChange={(e) => onChange(e.target.value)}
+            displayEmpty
           >
-            <option value="">Selecione uma opção</option>
+            <MenuItem value="" disabled>
+              Selecione uma opção
+            </MenuItem>
             {options.map((opt, index) => (
-              <option key={index} value={opt}>{opt}</option>
+              <MenuItem key={index} value={opt}>
+                {opt}
+              </MenuItem>
             ))}
-          </select>
+          </Select>
         );
-      }
-
-      case 'YES_NO':
+      case "YES_NO":
         return (
-          <div className="d-flex gap-4 mt-2">
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="radio"
-                id={`yes-${question.id}`}
-                value="true"
-                checked={value === 'true'}
-                onChange={() => onChange('true')}
-              />
-              <label className="form-check-label" htmlFor={`yes-${question.id}`}>
-                Sim
-              </label>
-            </div>
-            <div className="form-check">
-              <input
-                className="form-check-input"
-                type="radio"
-                id={`no-${question.id}`}
-                value="false"
-                checked={value === 'false'}
-                onChange={() => onChange('false')}
-              />
-              <label className="form-check-label" htmlFor={`no-${question.id}`}>
-                Não
-              </label>
-            </div>
-          </div>
-        );
-
-      case 'SCALE': {
-        const scaleOptions = question.options
-          ? question.options[0].split('-').map(opt => opt.trim())
-          : [];
-
-        return (
-          <select
-            className="form-select"
-            value={value || ''}
+          <RadioGroup
+            row
+            name={`question-${question.id}`}
+            value={value || ""}
             onChange={(e) => onChange(e.target.value)}
+            sx={{ gap: 4 }}
           >
-            <option value="">Selecione uma nota</option>
-            {scaleOptions.map((opt, index) => (
-              <option key={index} value={opt}>{opt}</option>
-            ))}
-          </select>
+            <FormControlLabel value="true" control={<Radio />} label="Sim" />
+            <FormControlLabel value="false" control={<Radio />} label="Não" />
+          </RadioGroup>
+        );
+      case "SCALE": {
+        const maxRating =
+          options.length > 0 ? parseInt(options[options.length - 1], 10) : 5;
+        const handleRatingChange = (event, newValue) => {
+          onChange(newValue ?? null);
+        };
+        return (
+          <Box mt={1}>
+            <Rating
+              name={`rating-question-${question.id}`}
+              value={Number(value) || 0}
+              onChange={handleRatingChange}
+              precision={1}
+              max={maxRating}
+            />
+          </Box>
         );
       }
-
       default:
-        return <p className="text-muted">Tipo de pergunta desconhecido.</p>;
+        return (
+          <Typography variant="body2" color="text.secondary">
+            Tipo de pergunta desconhecido.
+          </Typography>
+        );
     }
   };
 
   return (
-    <div className="mb-3">
-      <label className="form-label" title={question.label}>
-        {question.label}
-        {question.mandatory && <span className="text-danger ms-1">*</span>}
-      </label>
-      {renderInput()}
-    </div>
+    <Box sx={{ mb: 3 }}>
+      <FormControl component="fieldset" fullWidth>
+        <FormLabel
+          component="legend"
+          sx={{ mb: 1, fontWeight: "bold" }}
+          title={translatedLabel}
+        >
+          {translatedLabel}
+          {question.mandatory && (
+            <Box component="span" sx={{ color: "error.main", ml: 0.5 }}>
+              *
+            </Box>
+          )}
+        </FormLabel>
+        {renderInput()}
+      </FormControl>
+    </Box>
   );
 };
 

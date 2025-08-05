@@ -31,7 +31,11 @@ function App() {
           {/* rotas Públicas */}
           <Route path="/login" element={<LoginPage />} />
           {/* rota para o hóspede responder a pesquisa */}
-          <Route path="/survey/:companyId/:language" element={<SurveyViewPage />} />
+          
+          <Route path="/survey/:formId/:language" element={<SurveyViewPage />} />
+
+          
+          
 
           {/* rotas Administrativas (Protegidas por AdminRoute) */}
           <Route path="/admin" element={<AdminRoute><AdminFormsPage /></AdminRoute>} />
