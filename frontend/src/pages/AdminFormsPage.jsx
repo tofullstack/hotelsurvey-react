@@ -7,23 +7,34 @@ import {
   Box,
   Typography,
   Button,
-  List,
-  ListItem,
-  ListItemText,
   CircularProgress,
   Alert,
-  Card,
-  CardContent,
-  CardActions,
-  Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Chip,
+  Stack
 } from '@mui/material';
-import { Add as AddIcon, Edit as EditIcon, Visibility as VisibilityIcon, QrCode as QrCodeIcon, PlayArrow as PlayArrowIcon, Pause as PauseIcon } from '@mui/icons-material';
+import {
+  Add as AddIcon,
+  Edit as EditIcon,
+  Visibility as VisibilityIcon,
+  QrCode as QrCodeIcon,
+  PlayArrow as PlayArrowIcon,
+  Pause as PauseIcon
+} from '@mui/icons-material';
 
 const AdminFormsPage = () => {
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  
 
   useEffect(() => {
     const fetchForms = async () => {
@@ -44,7 +55,7 @@ const AdminFormsPage = () => {
   };
 
   const getSurveyFrontendUrl = (form) => {
-       const languageCode = form.language || 'pt-BR'; // Fallback para o idioma
+    const languageCode = form.language || 'pt-BR';
     return `http://localhost:5173/survey/${form.id}/${languageCode}`;
   };
 
@@ -77,64 +88,101 @@ const AdminFormsPage = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ my: 4 }}>
+    <Container maxWidth="xl" sx={{ my: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" component="h2">Formulários de Pesquisa</Typography>
-        <Button component={Link} to="/admin/forms/new" variant="contained" color="success" startIcon={<AddIcon />}>
+        <Typography variant="h5">Formulários de Pesquisa</Typography>
+        <Button
+          component={Link}
+          to="/admin/forms/new"
+          variant="contained"
+          color="info"
+          size="small"
+          startIcon={<AddIcon />}
+        >
           Novo Formulário
         </Button>
       </Box>
 
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-      <List>
-        {forms.length === 0 ? (
-          <Typography variant="body1" align="center" color="text.secondary">Nenhum formulário encontrado.</Typography>
-        ) : (
-          forms.map(form => (
-            <Card key={form.id} sx={{ mb: 2, boxShadow: 1 }}>
-              <CardContent>
-                <Grid container spacing={2} alignItems="center">
-                  <Grid item xs={12} sm={6}>
-                    <ListItemText
-                      primary={<Typography variant="h6">{form.name} ({form.language})</Typography>}
-                      secondary={
-                        <Typography variant="body2" color="text.secondary">
-                          Empresa: {form.companyId} | Status: {form.active ? 'Ativo' : 'Inativo'}
-                        </Typography>
-                      }
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={6} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' }, flexWrap: 'wrap', gap: 1 }}>
-                    <Button component={Link} to={`/admin/forms/edit/${form.id}`} variant="outlined" color="primary" startIcon={<EditIcon />}>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Nome</TableCell>
+              <TableCell>Empresa</TableCell>
+              <TableCell>Idioma</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell align="right">Ações</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {forms.map((form) => (
+              <TableRow key={form.id} hover>
+                <TableCell>{form.name}</TableCell>
+                <TableCell>{form.companyName}</TableCell>
+                <TableCell>{form.language || 'pt-BR'}</TableCell>
+                <TableCell>
+                  <Chip
+                    label={form.active ? 'Ativo' : 'Inativo'}
+                    color={form.active ? 'success' : 'default'}
+                    variant="outlined"
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+                    <Button
+                      component={Link}
+                      to={`/admin/forms/edit/${form.id}`}
+                      size="small"
+                      variant="outlined"
+                      startIcon={<EditIcon />}
+                    >
                       Editar
                     </Button>
-                    <Button component={Link} to={`/admin/forms/preview/${form.id}`} variant="outlined" color="secondary" startIcon={<VisibilityIcon />}>
+                    <Button
+                      component={Link}
+                      to={`/admin/forms/preview/${form.id}`}
+                      size="small"
+                      variant="outlined"
+                      color="secondary"
+                      startIcon={<VisibilityIcon />}
+                    >
                       Preview
                     </Button>
-                    {form.active ? (
-                      <Button variant="outlined" color="warning" onClick={() => handleDeactivate(form.id)} startIcon={<PauseIcon />}>
-                        Desativar
-                      </Button>
-                    ) : (
-                      <Button variant="outlined" color="success" onClick={() => handleActivate(form.id)} startIcon={<PlayArrowIcon />}>
-                        Ativar
-                      </Button>
-                    )}
-                    <Button variant="contained" color="info" onClick={() => handleGenerateQr(form)} startIcon={<QrCodeIcon />}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color={form.active ? 'warning' : 'success'}
+                      onClick={() =>
+                        form.active ? handleDeactivate(form.id) : handleActivate(form.id)
+                      }
+                      startIcon={form.active ? <PauseIcon /> : <PlayArrowIcon />}
+                    >
+                      {form.active ? 'Desativar' : 'Ativar'}
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="info"
+                      onClick={() => handleGenerateQr(form)}
+                      startIcon={<QrCodeIcon />}
+                    >
                       QR Code
                     </Button>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </List>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
 
       {selectedFormForQr && (
         <Box sx={{ mt: 4, p: 3, border: '1px solid', borderColor: 'grey.300', borderRadius: '4px' }}>
-          <Typography variant="h6" mb={2}>QR Code para: {selectedFormForQr.name} ({selectedFormForQr.language})</Typography>
+          <Typography variant="h6" mb={2}>
+            QR Code para: {selectedFormForQr.name}
+          </Typography>
           <QRCodeDisplay url={getSurveyFrontendUrl(selectedFormForQr)} size={256} />
         </Box>
       )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FormService from "../services/form.service";
+
 import {
   Container,
   Box,
@@ -52,29 +53,38 @@ const FormEditorPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isNewForm, setIsNewForm] = useState(true);
+  const [companies, setCompanies] = useState([]);
+
 
   useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const data = await FormService.getAllCompanies(); // <- esse método precisa existir
+        setCompanies(data);
+      } catch (err) {
+        console.error("Erro ao carregar empresas", err);
+      }
+    };
+  
+    fetchCompanies();
+  
     if (formId) {
       setIsNewForm(false);
       const fetchForm = async () => {
         try {
           const data = await FormService.getFormById(formId);
- 
           const formattedQuestions = data.questions.map((q) => ({
             ...q,
             options: Array.isArray(q.options) ? q.options.join(", ") : "",
-   
             translations:
               Array.isArray(q.translations) && q.translations.length > 0
                 ? q.translations
-                : [{ language: "", label: "" }], 
+                : [{ language: "", label: "" }],
           }));
           setFormData({ ...data, questions: formattedQuestions });
           setLoading(false);
         } catch (err) {
-          setError(
-            err.response?.data?.message || "Falha ao carregar formulário para edição"
-          );
+          setError(err.response?.data?.message || "Falha ao carregar formulário para edição");
           setLoading(false);
         }
       };
@@ -84,7 +94,7 @@ const FormEditorPage = () => {
       setIsNewForm(true);
     }
   }, [formId]);
-
+  
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -221,7 +231,7 @@ const FormEditorPage = () => {
         active: formData.active ?? false,
       };
 
-      console.log("Payload a ser enviado:", payload);
+    
 
       if (isNewForm) {
         await FormService.createForm(payload);
@@ -244,7 +254,7 @@ const FormEditorPage = () => {
 
   return (
     <Container maxWidth="md" sx={{ my: 4 }}>
-      <Typography variant="h4" component="h2" align="center" mb={4}>
+      <Typography variant="h5" component="h2" align="center" mb={4}>
         {isNewForm ? "Novo formulário" : `Editar Formulário: ${formData.name}`}
       </Typography>
 
@@ -277,16 +287,24 @@ const FormEditorPage = () => {
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Empresa ID"
-              name="companyId"
-              type="number"
-              value={formData.companyId}
-              onChange={handleInputChange}
-              required
-            />
-          </Grid>
+  <FormControl fullWidth required>
+    <InputLabel id="company-label">Empresa</InputLabel>
+    <Select
+      labelId="company-label"
+      name="companyId"
+      value={formData.companyId}
+      onChange={handleInputChange}
+      label="Empresa"
+    >
+      {companies.map((company) => (
+        <MenuItem key={company.id} value={company.id}>
+          {company.name}
+        </MenuItem>
+      ))}
+    </Select>
+  </FormControl>
+</Grid>
+
           <Grid item xs={12} sm={6}>
             <FormGroup row>
               <FormControlLabel
@@ -307,7 +325,7 @@ const FormEditorPage = () => {
                     name="active"
                   />
                 }
-                label="Ativo (publicamente visivel)"
+                label="Ativo (Publicamente visível)"
               />
             </FormGroup>
           </Grid>

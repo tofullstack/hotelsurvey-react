@@ -3,6 +3,8 @@ import QuestionComponent from "./QuestionComponent";
 import PublicSurveyService from "../services/public.survey.service";
 import ConditionalTriggerService from '../services/conditional.trigger.service'; // Novo import
 //import { useParams } from "react-router-dom";
+import Rating from '@mui/material/Rating';
+
 
 import {
   Container,
@@ -93,6 +95,8 @@ const SurveyForm = ({formId, language}) => {
       try {
         const data = await PublicSurveyService.getSurveyQuestions(formId, selectedLanguage);
         setSurveyStructure(data);
+      //  console.log("Survey carregado:", data);
+
 
         if (data && data.questions) {
           const dynamicLanguages = new Set();
@@ -142,18 +146,18 @@ const SurveyForm = ({formId, language}) => {
       );
 
       if (conditionalForms && conditionalForms.length > 0) {
-        // Encontrou um formulário condicional, abre o modal
+        // encontrou um formulário condicional, abre o modal
         setIsModalOpen(true);
-        // O backend retorna uma lista, então pegamos o primeiro
+        // o backend retorna uma lista, então pegamos o primeiro
         setConditionalForm(conditionalForms[0]); 
         
-        // Inicializa o estado de respostas para o formulário condicional
+        // inicializa o estado de respostas para o formulário condicional
         const initialConditionalAnswers = {};
         conditionalForms[0].questions.forEach(q => initialConditionalAnswers[q.id] = "");
         setConditionalAnswers(initialConditionalAnswers);
         
       } else {
-        // Se não houver trigger, avança normalmente
+        // se não houver trigger, avança normalmente
         setTimeout(() => {
           if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
             setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -164,7 +168,7 @@ const SurveyForm = ({formId, language}) => {
       }
     } catch (err) {
       console.error('Error fetching conditional form:', err);
-      // Em caso de erro, avança normalmente para não travar o formulário
+      // em caso de erro, avança normalmente para não travar o formulário
       setTimeout(() => {
         if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
           setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -184,13 +188,12 @@ const SurveyForm = ({formId, language}) => {
 
   const handleConditionalSubmit = async (e) => {
     e.preventDefault();
-    // A lógica de submissão do formulário condicional iria aqui
-    // Por simplicidade, vamos apenas fechar o modal
+    // a lógica de submissão do formulário condicional iria aqui
     setConditionalForm(null);
     setConditionalAnswers({});
     setIsModalOpen(false);
     
-    // Continua para a próxima pergunta do formulário principal
+    // continua para a próxima pergunta do formulário principal
     setTimeout(() => {
       if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
         setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -269,6 +272,10 @@ const SurveyForm = ({formId, language}) => {
   };
 
   const renderContent = () => {
+    console.log("loading:", loading);
+console.log("error:", error);
+console.log("surveyStructure:", surveyStructure);
+
     if (loading) {
       return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /><Typography variant="body1" sx={{ ml: 2 }}>Carregando pesquisa...</Typography></Box>;
     }
@@ -285,7 +292,7 @@ const SurveyForm = ({formId, language}) => {
         return (
           <Card key={surveyStructure.id} sx={{ mb: 4, boxShadow: 1 }}>
             <CardHeader
-              title={<Typography variant="h4" sx={{ textAlign: 'center' }}>{surveyStructure.name}</Typography>}
+              /*title={<Typography variant="h4" sx={{ textAlign: 'center' }}>{surveyStructure.name}</Typography>}*/
               sx={{ backgroundColor: "primary.main", color: "primary.contrastText" }}
             />
             <CardContent>

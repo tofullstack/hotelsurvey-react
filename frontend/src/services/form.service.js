@@ -1,6 +1,7 @@
 import api from './api';
 
 const FORM_ADMIN_BASE_URL = '/forms';
+const COMPANY_ADMIN_BASE_URL = '/companies';
 
 const FormService = {
   createForm: async (formData) => {
@@ -71,7 +72,17 @@ const FormService = {
       console.error('Error previewing form:', error.response?.data || error.message);
       throw error;
     }
-  }
+  },
+
+  getAllCompanies: async () => {
+    try {
+      const response = await api.get(COMPANY_ADMIN_BASE_URL);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching all companies:', error.response?.data || error.message);
+      throw error;
+    }
+  },
 };
 
 export default FormService;

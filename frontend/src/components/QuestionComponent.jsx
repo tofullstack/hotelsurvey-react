@@ -95,6 +95,7 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
               onChange={handleRatingChange}
               precision={1}
               max={maxRating}
+              sx={{ fontSize: 60 }}
             />
           </Box>
         );
