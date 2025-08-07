@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import FormService from '../services/form.service';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import { Link } from 'react-router-dom';
+import Pagination from '@mui/material/Pagination';
+import Modal from '@mui/material/Modal';
+
+
 import {
   Container,
   Box,
@@ -31,10 +35,25 @@ import {
 const AdminFormsPage = () => {
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
+  const [openModal, setOpenModal] = useState(false);
+
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedFormForQr(null);
+  };
+
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const formsPerPage = 5;
 
-  
+  const handlePageChange = (event, value) => {
+    setCurrentPage(value);
+  };
+
+
+
 
   useEffect(() => {
     const fetchForms = async () => {
@@ -117,77 +136,124 @@ const AdminFormsPage = () => {
             </TableRow>
           </TableHead>
           <TableBody>
-            {forms.map((form) => (
-              <TableRow key={form.id} hover>
-                <TableCell>{form.name}</TableCell>
-                <TableCell>{form.companyName}</TableCell>
-                <TableCell>{form.language || 'pt-BR'}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={form.active ? 'Ativo' : 'Inativo'}
-                    color={form.active ? 'success' : 'default'}
-                    variant="outlined"
-                  />
-                </TableCell>
-                <TableCell align="right">
-                  <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
-                    <Button
-                      component={Link}
-                      to={`/admin/forms/edit/${form.id}`}
-                      size="small"
+            {forms
+              .slice((currentPage - 1) * formsPerPage, currentPage * formsPerPage)
+              .map((form) => (
+                <TableRow key={form.id} hover>
+
+                  <TableCell>{form.name}</TableCell>
+                  <TableCell>{form.companyName}</TableCell>
+                  <TableCell>{form.language || 'pt-BR'}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={form.active ? 'Ativo' : 'Inativo'}
+                      color={form.active ? 'success' : 'default'}
                       variant="outlined"
-                      startIcon={<EditIcon />}
-                    >
-                      Editar
-                    </Button>
-                    <Button
-                      component={Link}
-                      to={`/admin/forms/preview/${form.id}`}
-                      size="small"
-                      variant="outlined"
-                      color="secondary"
-                      startIcon={<VisibilityIcon />}
-                    >
-                      Preview
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      color={form.active ? 'warning' : 'success'}
-                      onClick={() =>
-                        form.active ? handleDeactivate(form.id) : handleActivate(form.id)
-                      }
-                      startIcon={form.active ? <PauseIcon /> : <PlayArrowIcon />}
-                    >
-                      {form.active ? 'Desativar' : 'Ativar'}
-                    </Button>
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="info"
-                      onClick={() => handleGenerateQr(form)}
-                      startIcon={<QrCodeIcon />}
-                    >
-                      QR Code
-                    </Button>
-                  </Stack>
-                </TableCell>
-              </TableRow>
-            ))}
+                    />
+                  </TableCell>
+                  <TableCell align="right" >
+                    <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color={form.active ? 'warning' : 'success'}
+                        onClick={() =>
+                          form.active ? handleDeactivate(form.id) : handleActivate(form.id)
+                        }
+                        startIcon={form.active ? <PauseIcon /> : <PlayArrowIcon />}
+                      >
+                        {form.active ? 'Desativar' : 'Ativar'}
+                      </Button><Button
+                        component={Link}
+                        to={`/admin/forms/edit/${form.id}`}
+                        size="small"
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        component={Link}
+                        to={`/admin/forms/preview/${form.id}`}
+                        size="small"
+                        variant="outlined"
+                        color="secondary"
+                        startIcon={<VisibilityIcon />}
+                      >
+                        Preview
+                      </Button>
+
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="info"
+                        onClick={() => {
+                          handleGenerateQr(form);
+                          handleOpenModal();
+                        }}
+                        startIcon={<QrCodeIcon />}
+                      >
+                        QR Code
+                      </Button>
+
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       </TableContainer>
 
-      {selectedFormForQr && (
-        <Box sx={{ mt: 4, p: 3, border: '1px solid', borderColor: 'grey.300', borderRadius: '4px' }}>
-          <Typography variant="h6" mb={2}>
-            QR Code para: {selectedFormForQr.name}
+      <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+        <Pagination
+          count={Math.ceil(forms.length / formsPerPage)}
+          page={currentPage}
+          onChange={handlePageChange}
+          color="primary"
+        />
+      </Box>
+
+
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        aria-labelledby="modal-qr-title"
+        aria-describedby="modal-qr-description"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            borderRadius: 2,
+            p: 4,
+            width: 360,
+            textAlign: 'center',
+          }}
+        >
+          <Typography id="modal-qr-title" variant="h6" mb={2}>
+            QR Code para: {selectedFormForQr?.name}
           </Typography>
-          <QRCodeDisplay url={getSurveyFrontendUrl(selectedFormForQr)} size={256} />
+          {selectedFormForQr && (
+            <QRCodeDisplay url={getSurveyFrontendUrl(selectedFormForQr)} size={256} />
+          )}
+          <Button onClick={handleCloseModal} sx={{ mt: 2 }} variant="outlined" color="error">
+            Fechar
+          </Button>
         </Box>
-      )}
+      </Modal>
+
+
+
     </Container>
+
+
   );
+
+
 };
 
 export default AdminFormsPage;

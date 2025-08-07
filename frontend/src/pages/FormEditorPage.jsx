@@ -46,7 +46,7 @@ const FormEditorPage = () => {
         mandatory: false,
         deniable: false,
         options: "",
-        translations: [{ language: "", label: "" }], 
+        translations: [{ language: "", label: "" }],
       },
     ],
   });
@@ -65,9 +65,9 @@ const FormEditorPage = () => {
         console.error("Erro ao carregar empresas", err);
       }
     };
-  
+
     fetchCompanies();
-  
+
     if (formId) {
       setIsNewForm(false);
       const fetchForm = async () => {
@@ -94,7 +94,7 @@ const FormEditorPage = () => {
       setIsNewForm(true);
     }
   }, [formId]);
-  
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -231,7 +231,7 @@ const FormEditorPage = () => {
         active: formData.active ?? false,
       };
 
-    
+
 
       if (isNewForm) {
         await FormService.createForm(payload);
@@ -253,7 +253,7 @@ const FormEditorPage = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ my: 4 }}>
+    <Container maxWidth="xl" sx={{ my: 4 }}>
       <Typography variant="h5" component="h2" align="center" mb={4}>
         {isNewForm ? "Novo formulário" : `Editar Formulário: ${formData.name}`}
       </Typography>
@@ -287,23 +287,23 @@ const FormEditorPage = () => {
             />
           </Grid>
           <Grid item xs={12} sm={6}>
-  <FormControl fullWidth required>
-    <InputLabel id="company-label">Empresa</InputLabel>
-    <Select
-      labelId="company-label"
-      name="companyId"
-      value={formData.companyId}
-      onChange={handleInputChange}
-      label="Empresa"
-    >
-      {companies.map((company) => (
-        <MenuItem key={company.id} value={company.id}>
-          {company.name}
-        </MenuItem>
-      ))}
-    </Select>
-  </FormControl>
-</Grid>
+            <FormControl fullWidth required>
+              <InputLabel id="company-label">Empresa</InputLabel>
+              <Select
+                labelId="company-label"
+                name="companyId"
+                value={formData.companyId}
+                onChange={handleInputChange}
+                label="Empresa"
+              >
+                {companies.map((company) => (
+                  <MenuItem key={company.id} value={company.id}>
+                    {company.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
 
           <Grid item xs={12} sm={6}>
             <FormGroup row>
@@ -503,7 +503,7 @@ const FormEditorPage = () => {
           type="submit"
           variant="contained"
           color="primary"
-          size="large"
+          size="small"
           fullWidth
           startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
         >
