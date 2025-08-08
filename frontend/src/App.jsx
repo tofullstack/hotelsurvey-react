@@ -7,13 +7,15 @@ import AdminFormsPage from './pages/AdminFormsPage';
 import FormEditorPage from './pages/FormEditorPage';
 import ReportPage from './pages/ReportPage';
 import AdminLayout from './layouts/AdminLayout';
+import AdminCompaniesPage from './pages/AdminCompaniesPage';
+import CompanyForm from './components/CompanyForm';
 
 // componente de guarda de rota para ADMIN
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <p className="text-center mt-5">Loading user information...</p>;
+    return <p className="text-center mt-5">Carregando informações do usuário...</p>;
   }
 
   // se o usuário não está logado ou não é ADMIN, redireciona para o login
@@ -51,7 +53,15 @@ function App() {
             <Route path="forms/new" element={<FormEditorPage />} />
             <Route path="forms/edit/:formId" element={<FormEditorPage />} />
             <Route path="reports" element={<ReportPage />} />
+
+                      {/* rotas para Company */}
+          <Route path="/admin/companies" element={<AdminCompaniesPage />} />
+          <Route path="/admin/companies/new" element={<CompanyForm />} />
+          <Route path="/admin/companies/edit/:id" element={<CompanyForm />} />
           </Route>
+
+
+
 
 
 

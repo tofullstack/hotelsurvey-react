@@ -24,7 +24,7 @@ const menuItems = [
   {
     text: 'Empresas',
     icon: <AddBoxIcon />,
-    path: 'TODO',
+    path: '/admin/companies',
   },
   {
     text: 'Relatórios',
