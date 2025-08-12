@@ -3,17 +3,14 @@ import api from './api';
 const COMPANY_ADMIN_BASE_URL = '/companies';
 
 const CompanyService = {
-    getAllCompanies: async () => {
+    getAllCompanies: async (params) => { // <-- O método agora aceita um objeto 'params'
         try {
-            const res = await api.get(COMPANY_ADMIN_BASE_URL);
+            const res = await api.get(COMPANY_ADMIN_BASE_URL, { params });
             return res.data;
-
         } catch (error) {
             console.error('Error fetching all companies.', error.response?.data || error.message);
             throw error;
         }
-
-
     },
 
     getCompanyById: async (id) => {

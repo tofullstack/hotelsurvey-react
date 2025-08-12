@@ -1,118 +1,203 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import CompanyService from '../services/company.service';
+import React, { useState, useEffect } from "react";
+import CompanyService from "../services/company.service";
 import {
-  Container, Box, Typography, Button, Table, TableBody,
-  TableCell, TableContainer, TableHead, TableRow, Paper, Alert,
-  CircularProgress, Pagination, Stack
-} from '@mui/material';
-import {
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon
-} from '@mui/icons-material';
+  Container,
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  IconButton,
+  CircularProgress,
+  TablePagination,
+  Grid
+} from "@mui/material";
+import Pagination from '@mui/material/Pagination';
+import { Edit, Delete, Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
 const AdminCompaniesPage = () => {
-  const [companies, setCompanies] = useState([]);
-  const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const companiesPerPage = 5;
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
+  const [companies, setCompanies] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [searchName, setSearchName] = useState("");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
   const fetchCompanies = async () => {
+    setLoading(true);
     try {
-      const data = await CompanyService.getAllCompanies();
-      setCompanies(data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao carregar empresas');
+      const response = await CompanyService.getAllCompanies({
+        page,
+        size: rowsPerPage,
+        name: searchName,
+      });
+
+      if (Array.isArray(response)) {
+        setCompanies(response);
+        setTotalElements(response.length);
+        setTotalPages(Math.ceil(response.length / rowsPerPage));
+      } else {
+        setCompanies(response?.content || []);
+        setTotalElements(response?.totalElements || 0);
+        setTotalPages(response?.totalPages || 0);
+      }
+    } catch (error) {
+      console.error("Erro ao buscar empresas:", error);
+      setCompanies([]);
+      setTotalElements(0);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchCompanies();
+  }, [page, rowsPerPage, searchName]);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage - 1);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+
+  const handleSearch = () => {
+    setPage(0);
+  };
+
+  const handleEdit = (id) => {
+    navigate(`/admin/companies/edit/${id}`);
+  };
+
   const handleDelete = async (id) => {
-    if (window.confirm('Tem certeza que deseja deletar essa empresa?')) {
+    if (window.confirm("Tem certeza que deseja deletar esta empresa?")) {
       try {
         await CompanyService.deleteCompany(id);
-        setCompanies(companies.filter((c) => c.id !== id));
-      } catch (err) {
-        setError(err.response?.data?.message || 'Erro ao deletar empresa');
+        fetchCompanies();
+      } catch (error) {
+        console.error("Erro ao deletar empresa:", error);
       }
     }
   };
 
-  const handlePageChange = (event, value) => {
-    setCurrentPage(value);
-  };
-
-  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}><CircularProgress /></Box>;
-
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h5">Empresas</Typography>
-        <Button component={Link} to="/admin/companies/new" size='small' variant="contained" color="info" startIcon={<AddIcon />}>
-          Nova Empresa
-        </Button>
+      <Box mb={4}>
+        <Typography variant="h6" component="h1" gutterBottom >
+          Gerenciar Empresas
+        </Typography>
       </Box>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid item xs={12}>
+          <Paper elevation={3} sx={{ p: 3 }}>
+            <Box display="flex" alignItems="center" gap={2}>
+              <TextField
+                label="Buscar por nome"
+                value={searchName}
+                onChange={(e) => setSearchName(e.target.value)}
+                variant="outlined"
+                size="small"
+                sx={{ minWidth: 500 }}
+              />
+              <Button
+                variant="contained"
+                onClick={handleSearch}
+                startIcon={<SearchIcon />}
+                size="small"
+              >
+                Buscar
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate("/admin/companies/new")}
+                startIcon={<AddIcon />}
+                size="small"
+              >
+                Nova Empresa
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell align="right">Ações</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {companies
-              .slice((currentPage - 1) * companiesPerPage, currentPage * companiesPerPage)
-              .map((company) => (
-                <TableRow key={company.id} hover>
-                  <TableCell>{company.name}</TableCell>
-                  <TableCell align="right">
-                    <Stack direction="row" spacing={1} justifyContent="flex-end">
-                      <Button
-                        component={Link}
-                        to={`/admin/companies/edit/${company.id}`}
-                        variant="outlined"
-                        color="primary"
-                        size="small"
-                        startIcon={<EditIcon />}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        onClick={() => handleDelete(company.id)}
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        startIcon={<DeleteIcon />}
-                      >
-                        Deletar
-                      </Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        <Grid item xs={12}>
+          {loading ? (
+            <Box display="flex" justifyContent="center" my={5}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Paper elevation={3}>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      {/* <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell> */}
+                      <TableCell sx={{ fontWeight: 'bold' }}>Nome</TableCell>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Série</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {companies.length > 0 ? (
+                      companies.map((company) => (
+                        <TableRow key={company.id} hover>
+                          {/* <TableCell>{company.id}</TableCell> */}
+                          <TableCell>{company.name}</TableCell>
+                          <TableCell>{company.serieEmpresa}</TableCell>
+                          <TableCell align="right">
+                            <IconButton
+                              color="primary"
+                              onClick={() => handleEdit(company.id)}
+                            >
+                              <Edit />
+                            </IconButton>
+                            <IconButton
+                              color="secondary"
+                              onClick={() => handleDelete(company.id)}
+                            >
+                              <Delete />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">
+                          Nenhuma empresa encontrada
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
-        <Pagination
-          count={Math.ceil(companies.length / companiesPerPage)}
-          page={currentPage}
-          onChange={handlePageChange}
-          color="primary"
-        />
-      </Box>
+
+            </Paper>
+          )}
+          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
+            <Pagination
+              count={totalPages}
+              page={page + 1}
+              onChange={handleChangePage}
+              color="primary"
+            />
+          </Box></Grid>
+      </Grid>
     </Container>
   );
 };

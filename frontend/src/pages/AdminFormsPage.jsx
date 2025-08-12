@@ -109,7 +109,7 @@ const AdminFormsPage = () => {
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h5">Formulários de Pesquisa</Typography>
+        <Typography variant="h6">Formulários de Pesquisa</Typography>
         <Button
           component={Link}
           to="/admin/forms/new"

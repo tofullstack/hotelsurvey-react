@@ -21,27 +21,29 @@ import {
   CircularProgress,
   Alert,
   Grid,
+  Paper,
+  Divider,
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
   Add as AddIcon,
-  Edit as EditIcon,
   Save as SaveIcon,
   Close as CloseIcon,
 } from "@mui/icons-material";
+import CompanyService from "../services/company.service";
 
 const FormEditorPage = () => {
   const { formId } = useParams();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
-    language: "", // principal do formulário
+    language: "",
     companyId: "",
     denyUse: false,
     active: true,
     questions: [
       {
-        label: "", //campo para a label primária da pergunta
+        label: "",
         type: "TEXT",
         mandatory: false,
         deniable: false,
@@ -55,12 +57,11 @@ const FormEditorPage = () => {
   const [isNewForm, setIsNewForm] = useState(true);
   const [companies, setCompanies] = useState([]);
 
-
   useEffect(() => {
     const fetchCompanies = async () => {
       try {
-        const data = await FormService.getAllCompanies(); // <- esse método precisa existir
-        setCompanies(data);
+        const response = await CompanyService.getAllCompanies();
+        setCompanies(response?.content || []);
       } catch (err) {
         console.error("Erro ao carregar empresas", err);
       }
@@ -175,17 +176,11 @@ const FormEditorPage = () => {
           formattedOptions = [];
         }
 
-        // label primária da pergunta seja enviada
         const questionLabel = q.label || "";
-
-        // filtra traduções vazias
         let filteredTranslations = q.translations.filter(
           (t) => t.language && t.label
         );
 
-        // garante que a tradução para o idioma principal do formulário esteja presente
-        // se o idioma principal do formulário (formData.language) não tiver uma tradução explícita
-        // na lista, adicionamos uma usando a 'label' primária da pergunta.
         const defaultLanguageTranslationExists = filteredTranslations.some(
           (t) => t.language === formData.language
         );
@@ -201,7 +196,6 @@ const FormEditorPage = () => {
           });
         }
 
-        // se não houver traduções e houver uma label primária, cria uma tradução padrão
         if (
           filteredTranslations.length === 0 &&
           questionLabel &&
@@ -214,7 +208,6 @@ const FormEditorPage = () => {
         }
 
         return {
-          // garante que a propriedade 'label' da pergunta seja enviada
           label: questionLabel,
           type: q.type,
           mandatory: q.mandatory ?? false,
@@ -230,8 +223,6 @@ const FormEditorPage = () => {
         denyUse: formData.denyUse ?? false,
         active: formData.active ?? false,
       };
-
-
 
       if (isNewForm) {
         await FormService.createForm(payload);
@@ -254,8 +245,8 @@ const FormEditorPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-      <Typography variant="h5" component="h2" align="center" mb={4}>
-        {isNewForm ? "Novo formulário" : `Editar Formulário: ${formData.name}`}
+      <Typography variant="h4" component="h1" align="center" mb={4} fontWeight="bold">
+        {isNewForm ? "Novo Formulário" : `Editar Formulário: ${formData.name}`}
       </Typography>
 
       {error && (
@@ -264,251 +255,261 @@ const FormEditorPage = () => {
         </Alert>
       )}
 
-      <Box component="form" onSubmit={handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Nome do Formulário"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              label="Idioma Padrão (e.g., pt-BR, en-US)"
-              name="language"
-              value={formData.language}
-              onChange={handleInputChange}
-              required
-            />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <FormControl fullWidth required>
-              <InputLabel id="company-label">Empresa</InputLabel>
-              <Select
-                labelId="company-label"
-                name="companyId"
-                value={formData.companyId}
+      <Box component={Paper} elevation={3} sx={{ p: { xs: 2, md: 4 } }}>
+        <Box component="form" onSubmit={handleSubmit}>
+          <Typography variant="h5" component="h2" mb={3} fontWeight="bold">
+            Informações Gerais
+          </Typography>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Nome do Formulário"
+                name="name"
+                value={formData.name}
                 onChange={handleInputChange}
-                label="Empresa"
-              >
-                {companies.map((company) => (
-                  <MenuItem key={company.id} value={company.id}>
-                    {company.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-
-          <Grid item xs={12} sm={6}>
-            <FormGroup row>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={!!formData.denyUse}
-                    onChange={handleInputChange}
-                    name="denyUse"
-                  />
-                }
-                label='Permitir opção "Não utilizei este serviço"'
+                required
               />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={!!formData.active}
-                    onChange={handleInputChange}
-                    name="active"
-                  />
-                }
-                label="Ativo (Publicamente visível)"
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Idioma Padrão (e.g., pt-BR, en-US)"
+                name="language"
+                value={formData.language}
+                onChange={handleInputChange}
+                required
               />
-            </FormGroup>
-          </Grid>
-        </Grid>
-
-        <Typography variant="h5" component="h3" mt={4} mb={2}>
-          Perguntas
-        </Typography>
-
-        {formData.questions.map((q, index) => (
-          <Card key={index} sx={{ mb: 3, boxShadow: 1 }}>
-            <CardContent>
-              <Box
-                sx={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  mb: 2,
-                }}
-              >
-                <Typography variant="h6">Pergunta {index + 1}</Typography>
-                <IconButton
-                  onClick={() => removeQuestion(index)}
-                  color="error"
-                  aria-label="remove question"
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth required>
+                <InputLabel id="company-label">Empresa</InputLabel>
+                <Select
+                  labelId="company-label"
+                  name="companyId"
+                  value={formData.companyId}
+                  onChange={handleInputChange}
+                  label="Empresa"
                 >
-                  <DeleteIcon />
-                </IconButton>
-              </Box>
+                  {companies.map((company) => (
+                    <MenuItem key={company.id} value={company.id}>
+                      {company.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormGroup row sx={{ mt: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={!!formData.denyUse}
+                      onChange={handleInputChange}
+                      name="denyUse"
+                    />
+                  }
+                  label='Permitir opção "Não utilizei este serviço"'
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={!!formData.active}
+                      onChange={handleInputChange}
+                      name="active"
+                    />
+                  }
+                  label="Ativo"
+                />
+              </FormGroup>
+            </Grid>
+          </Grid>
 
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={8}>
-                  <TextField
-                    fullWidth
-                    label="Título da Pergunta"
-                    name="label"
-                    value={q.label}
-                    onChange={(e) => handleQuestionChange(index, e)}
-                    required
-                  />
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <FormControl fullWidth>
-                    <InputLabel id={`type-label-${index}`}>Tipo</InputLabel>
-                    <Select
-                      labelId={`type-label-${index}`}
-                      name="type"
-                      value={q.type}
-                      label="Type"
-                      onChange={(e) => handleQuestionChange(index, e)}
-                    >
-                      <MenuItem value="TEXT">Texto</MenuItem>
-                      <MenuItem value="CHOICE">Múltipla Escolha</MenuItem>
-                      <MenuItem value="YES_NO">Sim/Não</MenuItem>
-                      <MenuItem value="SCALE">Escala</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                {(q.type === "CHOICE" || q.type === "SCALE") && (
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Opções (separados por vírgula)"
-                      name="options"
-                      value={q.options}
-                      onChange={(e) => handleQuestionChange(index, e)}
-                    />
-                  </Grid>
-                )}
-                <Grid item xs={12}>
-                  <FormGroup row>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={!!q.mandatory}
-                          onChange={(e) => handleQuestionChange(index, e)}
-                          name="mandatory"
-                        />
-                      }
-                      label="Obrigatória"
-                    />
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={!!q.deniable}
-                          onChange={(e) => handleQuestionChange(index, e)}
-                          name="deniable"
-                        />
-                      }
-                      label="Não utilizei este serviço"
-                    />
-                  </FormGroup>
-                </Grid>
-              </Grid>
+          <Divider sx={{ my: 4 }} />
 
-              <Box
-                mt={3}
-                p={2}
-                sx={{ border: "1px dashed grey", borderRadius: "4px" }}
-              >
+          <Typography variant="h5" component="h3" mb={3} fontWeight="bold">
+            Perguntas
+          </Typography>
+
+          {formData.questions.map((q, index) => (
+            <Card key={index} sx={{ mb: 3, boxShadow: 1, border: "1px solid #e0e0e0" }}>
+              <CardContent>
                 <Box
                   sx={{
                     display: "flex",
                     justifyContent: "space-between",
                     alignItems: "center",
                     mb: 2,
+                    pb: 1,
+                    borderBottom: "1px solid #f0f0f0"
                   }}
                 >
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                    Traduções
-                  </Typography>
-                  <Button
-                    onClick={() => addTranslation(index)}
-                    startIcon={<AddIcon />}
-                    size="small"
+                  <Typography variant="h6">Pergunta {index + 1}</Typography>
+                  <IconButton
+                    onClick={() => removeQuestion(index)}
+                    color="error"
+                    aria-label="remove question"
                   >
-                    Adicionar Tradução
-                  </Button>
+                    <DeleteIcon />
+                  </IconButton>
                 </Box>
-                {q.translations.map((t, tIndex) => (
-                  <Grid container spacing={2} key={tIndex} sx={{ mb: 2 }}>
-                    <Grid item xs={12} sm={5}>
-                      <TextField
-                        fullWidth
-                        label="Código do Idioma (e.g., pt-BR)"
-                        name="language"
-                        value={t.language}
-                        onChange={(e) =>
-                          handleTranslationChange(index, tIndex, e)
-                        }
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={6}>
-                      <TextField
-                        fullWidth
-                        label="Título Traduzido"
-                        name="label"
-                        value={t.label}
-                        onChange={(e) =>
-                          handleTranslationChange(index, tIndex, e)
-                        }
-                      />
-                    </Grid>
-                    <Grid
-                      item
-                      xs={12}
-                      sm={1}
-                      sx={{ display: "flex", alignItems: "center" }}
-                    >
-                      <IconButton
-                        onClick={() => removeTranslation(index, tIndex)}
-                        color="error"
-                        aria-label="remove translation"
-                      >
-                        <CloseIcon />
-                      </IconButton>
-                    </Grid>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={8}>
+                    <TextField
+                      fullWidth
+                      label="Título da Pergunta"
+                      name="label"
+                      value={q.label}
+                      onChange={(e) => handleQuestionChange(index, e)}
+                      required
+                    />
                   </Grid>
-                ))}
-              </Box>
-            </CardContent>
-          </Card>
-        ))}
+                  <Grid item xs={12} sm={4}>
+                    <FormControl fullWidth>
+                      <InputLabel id={`type-label-${index}`}>Tipo</InputLabel>
+                      <Select
+                        labelId={`type-label-${index}`}
+                        name="type"
+                        value={q.type}
+                        label="Type"
+                        onChange={(e) => handleQuestionChange(index, e)}
+                      >
+                        <MenuItem value="TEXT">Texto</MenuItem>
+                        <MenuItem value="CHOICE">Múltipla Escolha</MenuItem>
+                        <MenuItem value="YES_NO">Sim/Não</MenuItem>
+                        <MenuItem value="SCALE">Escala</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  {(q.type === "CHOICE" || q.type === "SCALE") && (
+                    <Grid item xs={12}>
+                      <TextField
+                        fullWidth
+                        label="Opções (separadas por vírgula)"
+                        name="options"
+                        value={q.options}
+                        onChange={(e) => handleQuestionChange(index, e)}
+                      />
+                    </Grid>
+                  )}
+                  <Grid item xs={12}>
+                    <FormGroup row>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={!!q.mandatory}
+                            onChange={(e) => handleQuestionChange(index, e)}
+                            name="mandatory"
+                          />
+                        }
+                        label="Obrigatória"
+                      />
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={!!q.deniable}
+                            onChange={(e) => handleQuestionChange(index, e)}
+                            name="deniable"
+                          />
+                        }
+                        label="Opção 'Não Utilizei'"
+                      />
+                    </FormGroup>
+                  </Grid>
+                </Grid>
 
-        <Button
-          variant="outlined"
-          startIcon={<AddIcon />}
-          onClick={addQuestion}
-          sx={{ mb: 3 }}
-        >
-          Adicionar Pergunta
-        </Button>
+                <Box
+                  mt={3}
+                  p={2}
+                  sx={{ border: "1px dashed #bdbdbd", borderRadius: "4px", backgroundColor: "grey.50" }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                      Traduções da Pergunta
+                    </Typography>
+                    <Button
+                      onClick={() => addTranslation(index)}
+                      startIcon={<AddIcon />}
+                      size="small"
+                    >
+                      Adicionar
+                    </Button>
+                  </Box>
+                  {q.translations.map((t, tIndex) => (
+                    <Grid container spacing={2} key={tIndex} sx={{ mb: 2 }}>
+                      <Grid item xs={12} sm={5}>
+                        <TextField
+                          fullWidth
+                          label="Código do Idioma (e.g., pt-BR)"
+                          name="language"
+                          value={t.language}
+                          onChange={(e) =>
+                            handleTranslationChange(index, tIndex, e)
+                          }
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField
+                          fullWidth
+                          label="Título Traduzido"
+                          name="label"
+                          value={t.label}
+                          onChange={(e) =>
+                            handleTranslationChange(index, tIndex, e)
+                          }
+                        />
+                      </Grid>
+                      <Grid
+                        item
+                        xs={12}
+                        sm={1}
+                        sx={{ display: "flex", alignItems: "center" }}
+                      >
+                        <IconButton
+                          onClick={() => removeTranslation(index, tIndex)}
+                          color="error"
+                          aria-label="remove translation"
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      </Grid>
+                    </Grid>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
+          ))}
 
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          size="small"
-          fullWidth
-          startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
-        >
-          {isNewForm ? "Criar Formulário" : "Salvar Mudanças"}
-        </Button>
+          <Button
+            variant="outlined"
+            startIcon={<AddIcon />}
+            onClick={addQuestion}
+            sx={{ mb: 3 }}
+          >
+            Adicionar Pergunta
+          </Button>
+
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            size="large"
+            fullWidth
+            startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
+            sx={{ mt: 3, py: 1.5 }}
+          >
+            {isNewForm ? "Criar Formulário" : "Salvar Mudanças"}
+          </Button>
+        </Box>
       </Box>
     </Container>
   );

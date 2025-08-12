@@ -10,7 +10,7 @@ const CompanyForm = () => {
   const navigate = useNavigate();
   const isEdit = Boolean(id);
 
-  const [company, setCompany] = useState({ name: '' });
+  const [company, setCompany] = useState({ name: '', serieEmpresa: '' });
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const CompanyForm = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4 }}>
-      <Typography variant="h5" mb={2}>
+      <Typography variant="h6" mb={2}>
         {isEdit ? 'Editar Empresa' : 'Nova Empresa'}
       </Typography>
 
@@ -48,12 +48,25 @@ const CompanyForm = () => {
           fullWidth
           label="Nome da Empresa"
           variant="outlined"
+          size='small'
           value={company.name}
           onChange={(e) => setCompany({ ...company, name: e.target.value })}
           required
           sx={{ mb: 2 }}
         />
-        <Button type="submit" variant="contained" color="primary">
+
+        <TextField
+          fullWidth
+          label="Série da Empresa"
+          variant="outlined"
+          size='small'
+          value={company.serieEmpresa}
+          onChange={(e) => setCompany({ ...company, serieEmpresa: e.target.value })}
+          required
+          sx={{ mb: 2 }}
+        />
+
+        <Button type="submit" variant="contained" color="primary" size='small'>
           Salvar
         </Button>
       </Box>
