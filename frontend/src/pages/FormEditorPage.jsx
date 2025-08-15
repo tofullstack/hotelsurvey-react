@@ -39,10 +39,13 @@ const FormEditorPage = () => {
     name: "",
     language: "",
     companyId: "",
+    serieEmpresa: "",
+    conditional: false,
     denyUse: false,
     active: true,
     questions: [
       {
+        id: "temp-1",
         label: "",
         type: "TEXT",
         mandatory: false,
@@ -51,11 +54,13 @@ const FormEditorPage = () => {
         translations: [{ language: "", label: "" }],
       },
     ],
+    triggers: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isNewForm, setIsNewForm] = useState(true);
   const [companies, setCompanies] = useState([]);
+  const [conditionalForms, setConditionalForms] = useState([]);
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -66,7 +71,6 @@ const FormEditorPage = () => {
         console.error("Erro ao carregar empresas", err);
       }
     };
-
     fetchCompanies();
 
     if (formId) {
@@ -82,10 +86,17 @@ const FormEditorPage = () => {
                 ? q.translations
                 : [{ language: "", label: "" }],
           }));
-          setFormData({ ...data, questions: formattedQuestions });
+          setFormData({
+            ...data,
+            questions: formattedQuestions,
+            triggers: data.triggers || [],
+          });
           setLoading(false);
         } catch (err) {
-          setError(err.response?.data?.message || "Falha ao carregar formulário para edição");
+          setError(
+            err.response?.data?.message ||
+              "Falha ao carregar formulário para edição"
+          );
           setLoading(false);
         }
       };
@@ -96,12 +107,38 @@ const FormEditorPage = () => {
     }
   }, [formId]);
 
+  useEffect(() => {
+    const fetchConditionalForms = async () => {
+      if (formData.companyId) {
+        try {
+          // Aqui a chamada precisa ser para o método correto do seu serviço
+          const response = await FormService.getConditionalFormsForCompany(
+            formData.companyId
+          );
+          setConditionalForms(response);
+        } catch (err) {
+          console.error("Erro ao carregar formulários condicionais", err);
+        }
+      }
+    };
+    fetchConditionalForms();
+  }, [formData.companyId]);
+
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    if (name === "companyId") {
+      const selectedCompany = companies.find((c) => c.id === value);
+      setFormData((prev) => ({
+        ...prev,
+        companyId: value,
+        serieEmpresa: selectedCompany ? selectedCompany.serieEmpresa : "",
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
   };
 
   const handleQuestionChange = (questionIndex, e) => {
@@ -113,7 +150,8 @@ const FormEditorPage = () => {
     };
     setFormData((prev) => ({ ...prev, questions: newQuestions }));
   };
-
+  
+  // FUNÇÃO QUE ESTAVA FALTANDO, ADICIONADA AQUI
   const handleTranslationChange = (questionIndex, translationIndex, e) => {
     const { name, value } = e.target;
     const newQuestions = [...formData.questions];
@@ -124,12 +162,42 @@ const FormEditorPage = () => {
     setFormData((prev) => ({ ...prev, questions: newQuestions }));
   };
 
+  const handleTriggerChange = (triggerIndex, e) => {
+    const { name, value } = e.target;
+    const newTriggers = [...formData.triggers];
+    newTriggers[triggerIndex] = {
+      ...newTriggers[triggerIndex],
+      [name]: value,
+    };
+    setFormData((prev) => ({ ...prev, triggers: newTriggers }));
+  };
+
+  const addTrigger = () => {
+    setFormData((prev) => ({
+      ...prev,
+      triggers: [
+        ...prev.triggers,
+        {
+          questionId: "",
+          targetSectionId: "",
+          triggerValue: "",
+        },
+      ],
+    }));
+  };
+
+  const removeTrigger = (index) => {
+    const newTriggers = formData.triggers.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, triggers: newTriggers }));
+  };
+
   const addQuestion = () => {
     setFormData((prev) => ({
       ...prev,
       questions: [
         ...prev.questions,
         {
+          id: `temp-${Date.now()}`,
           label: "",
           type: "TEXT",
           mandatory: false,
@@ -142,8 +210,16 @@ const FormEditorPage = () => {
   };
 
   const removeQuestion = (index) => {
+    const questionToRemoveId = formData.questions[index].id;
     const newQuestions = formData.questions.filter((_, i) => i !== index);
-    setFormData((prev) => ({ ...prev, questions: newQuestions }));
+    const newTriggers = formData.triggers.filter(
+      (t) => t.questionId !== questionToRemoveId
+    );
+    setFormData((prev) => ({
+      ...prev,
+      questions: newQuestions,
+      triggers: newTriggers,
+    }));
   };
 
   const addTranslation = (questionIndex) => {
@@ -165,6 +241,14 @@ const FormEditorPage = () => {
     setError(null);
 
     try {
+      // Mapeamento dos IDs temporários para as perguntas
+      const tempIdMap = {};
+      formData.questions.forEach((q, index) => {
+        if (q.id.toString().startsWith("temp-")) {
+          tempIdMap[q.id] = index; // Armazena a posição da pergunta
+        }
+      });
+
       const cleanedQuestions = formData.questions.map((q) => {
         let formattedOptions = [];
         if (q.type === "CHOICE" || q.type === "SCALE") {
@@ -208,6 +292,7 @@ const FormEditorPage = () => {
         }
 
         return {
+          id: q.id.toString().startsWith("temp-") ? null : q.id,
           label: questionLabel,
           type: q.type,
           mandatory: q.mandatory ?? false,
@@ -222,6 +307,13 @@ const FormEditorPage = () => {
         questions: cleanedQuestions,
         denyUse: formData.denyUse ?? false,
         active: formData.active ?? false,
+        conditional: formData.conditional ?? false,
+        triggers: formData.triggers.map((t) => ({
+          ...t,
+          questionId: t.questionId.toString().startsWith("temp-")
+            ? tempIdMap[t.questionId] // Mapeia o ID temporário para a posição
+            : t.questionId,
+        })),
       };
 
       if (isNewForm) {
@@ -245,7 +337,13 @@ const FormEditorPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-      <Typography variant="h4" component="h1" align="center" mb={4} fontWeight="bold">
+      <Typography
+        variant="h4"
+        component="h1"
+        align="center"
+        mb={4}
+        fontWeight="bold"
+      >
         {isNewForm ? "Novo Formulário" : `Editar Formulário: ${formData.name}`}
       </Typography>
 
@@ -301,7 +399,26 @@ const FormEditorPage = () => {
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label="Série da Empresa"
+                name="serieEmpresa"
+                value={formData.serieEmpresa}
+                disabled
+              />
+            </Grid>
+            <Grid item xs={12}>
               <FormGroup row sx={{ mt: 1 }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={!!formData.conditional}
+                      onChange={handleInputChange}
+                      name="conditional"
+                    />
+                  }
+                  label="Formulário Condicional"
+                />
                 <FormControlLabel
                   control={
                     <Checkbox
@@ -333,7 +450,14 @@ const FormEditorPage = () => {
           </Typography>
 
           {formData.questions.map((q, index) => (
-            <Card key={index} sx={{ mb: 3, boxShadow: 1, border: "1px solid #e0e0e0" }}>
+            <Card
+              key={q.id}
+              sx={{
+                mb: 3,
+                boxShadow: 1,
+                border: "1px solid #e0e0e0",
+              }}
+            >
               <CardContent>
                 <Box
                   sx={{
@@ -342,7 +466,7 @@ const FormEditorPage = () => {
                     alignItems: "center",
                     mb: 2,
                     pb: 1,
-                    borderBottom: "1px solid #f0f0f0"
+                    borderBottom: "1px solid #f0f0f0",
                   }}
                 >
                   <Typography variant="h6">Pergunta {index + 1}</Typography>
@@ -423,7 +547,11 @@ const FormEditorPage = () => {
                 <Box
                   mt={3}
                   p={2}
-                  sx={{ border: "1px dashed #bdbdbd", borderRadius: "4px", backgroundColor: "grey.50" }}
+                  sx={{
+                    border: "1px dashed #bdbdbd",
+                    borderRadius: "4px",
+                    backgroundColor: "grey.50",
+                  }}
                 >
                   <Box
                     sx={{
@@ -497,6 +625,113 @@ const FormEditorPage = () => {
           >
             Adicionar Pergunta
           </Button>
+
+          <Divider sx={{ my: 4 }} />
+
+          <Typography variant="h5" component="h3" mb={3} fontWeight="bold">
+            Gatilhos Condicionais
+          </Typography>
+          <Box
+            p={2}
+            sx={{
+              border: "1px dashed #bdbdbd",
+              borderRadius: "4px",
+              backgroundColor: "grey.50",
+            }}
+          >
+            <Button
+              onClick={addTrigger}
+              startIcon={<AddIcon />}
+              size="small"
+              disabled={
+                !formData.companyId ||
+                conditionalForms.length === 0 ||
+                formData.questions.filter((q) => q.type !== "TEXT").length === 0
+              }
+            >
+              Adicionar Gatilho
+            </Button>
+            {formData.triggers.map((t, index) => (
+              <Grid container spacing={2} key={index} sx={{ mb: 2, mt: 1 }}>
+                <Grid item xs={12} sm={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Pergunta Gatilho</InputLabel>
+                    <Select
+                      name="questionId"
+                      value={t.questionId}
+                      onChange={(e) => handleTriggerChange(index, e)}
+                      label="Pergunta Gatilho"
+                    >
+                      {formData.questions
+                        .filter((q) => q.type !== "TEXT")
+                        .map((q) => (
+                          <MenuItem key={q.id} value={q.id}>
+                            {q.label ||
+                              `Pergunta ${
+                                formData.questions.findIndex(
+                                  (item) => item.id === q.id
+                                ) + 1
+                              }`}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={2}>
+                  <TextField
+                    fullWidth
+                    label="Valor da Resposta"
+                    name="triggerValue"
+                    value={t.triggerValue}
+                    onChange={(e) => handleTriggerChange(index, e)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={5}>
+                  <FormControl fullWidth>
+                    <InputLabel>Seção de Destino</InputLabel>
+                    <Select
+                      name="targetSectionId"
+                      value={t.targetSectionId}
+                      onChange={(e) => handleTriggerChange(index, e)}
+                      label="Seção de Destino"
+                    >
+                      {conditionalForms
+                        .filter((form) =>
+                          isNewForm ? true : form.id !== formId
+                        )
+                        .map((form) => (
+                          <MenuItem key={form.id} value={form.id}>
+                            {form.name}
+                          </MenuItem>
+                        ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={1}>
+                  <IconButton
+                    onClick={() => removeTrigger(index)}
+                    color="error"
+                    aria-label="remove trigger"
+                  >
+                    <CloseIcon />
+                  </IconButton>
+                </Grid>
+              </Grid>
+            ))}
+            {!formData.companyId && (
+              <Typography variant="caption" color="text.secondary">
+                Selecione uma empresa para carregar os formulários
+                condicionais.
+              </Typography>
+            )}
+            {formData.companyId &&
+              conditionalForms.length === 0 &&
+              formData.questions.filter((q) => q.type !== "TEXT").length > 0 && (
+                <Typography variant="caption" color="text.secondary">
+                  Nenhum formulário condicional encontrado para esta empresa.
+                </Typography>
+              )}
+          </Box>
 
           <Button
             type="submit"

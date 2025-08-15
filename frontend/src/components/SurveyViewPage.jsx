@@ -9,7 +9,7 @@ const SurveyViewPage = () => {
   if (!companyId || !formId) {
     return (
       <div className="alert alert-danger">
-        Invalid survey link. Missing company ID or form ID.
+        Link inválido para formulário. Faltando ID da Empresa ou ID do Formulário.
       </div>
     );
   }

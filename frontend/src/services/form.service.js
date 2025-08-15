@@ -83,6 +83,16 @@ const FormService = {
       throw error;
     }
   },
+
+  getConditionalFormsForCompany: async (companyId) => {
+    try {
+      const response = await api.get(`${FORM_ADMIN_BASE_URL}/conditional-forms/${companyId}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching conditional forms:', error.response?.data || error.message);
+      throw error;
+    }
+  }
 };
 
 export default FormService;
