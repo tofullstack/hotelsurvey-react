@@ -68,20 +68,20 @@ const SurveyForm = ({ formId, language }) => {
   const [selectedLanguage, setSelectedLanguage] = useState(language);
 
   const languageNames = {
-    'pt-BR': 'português',
-    'en-US': 'english',
-    'de-DE': 'deutsch',
-    'es-ES': 'español',
-    'fr-FR': 'français',
-    'it-IT': 'italiano',
-    'ja-JP': '日本語 (japonês)',
-    'ko-KR': '한국어 (coreano)',
-    'zh-CN': '中文 (chinês)',
+    'pt-BR': 'Português',
+    'en-US': 'English',
+    'de-DE': 'Deutsch',
+    'es-ES': 'Español',
+    'fr-FR': 'Français',
+    'it-IT': 'Italiano',
+    'ja-JP': '日本語 (Japonês)',
+    'ko-KR': '한국어 (Coreano)',
+    'zh-CN': '中文 (Chinês)',
   };
 
   useEffect(() => {
     if (!formId || !selectedLanguage) {
-      setError("url do formulário inválida. faltando id do formulário ou idioma.");
+      setError("URL do formulário inválida. Faltando id do formulário ou idioma.");
       setLoading(false);
       return;
     }
@@ -124,7 +124,7 @@ const SurveyForm = ({ formId, language }) => {
         }
         setLoading(false);
       } catch (err) {
-        setError("falha ao carregar a pesquisa. por favor, tente novamente mais tarde.");
+        setError("Falha ao carregar a pesquisa. Por favor, tente novamente mais tarde.");
         setLoading(false);
       }
     };
@@ -273,7 +273,7 @@ const handleSubmit = async (e) => {
     setTimeout(() => window.location.reload(), 5000);
   } catch (err) {
     setFormPhase("error");
-    setError("falha ao enviar a pesquisa.");
+    setError("Falha ao enviar a pesquisa.");
   }
 };
 
@@ -305,7 +305,7 @@ const handleSubmit = async (e) => {
           color="primary"
           sx={{ mt: 2 }}
         >
-          enviar e continuar
+          Enviar e Continuar
         </Button>
       </Box>
     );
@@ -319,7 +319,7 @@ const handleSubmit = async (e) => {
       return <Alert severity="error">erro: {error}</Alert>;
     }
     if (formPhase === "success") {
-      return (<Box sx={{ textAlign: "center", mt: 5, py: 10 }}><Typography variant="h3" gutterBottom sx={{ color: 'success.main' }}>🎉 obrigado!</Typography><Typography variant="h5">sua resposta foi enviada com sucesso.</Typography></Box>);
+      return (<Box sx={{ textAlign: "center", mt: 5, py: 10 }}><Typography variant="h3" gutterBottom sx={{ color: 'success.main' }}>🎉 Obrigado!</Typography><Typography variant="h5">Sua resposta foi enviada com sucesso.</Typography></Box>);
     }
 
     if (formPhase === 'questions') {
@@ -350,11 +350,11 @@ const handleSubmit = async (e) => {
     if (formPhase === 'details') {
       return (
         <Box component="form" onSubmit={handleSubmit}>
-          <Typography variant="h5" sx={{ mb: 2 }}>detalhes adicionais</Typography>
+          <Typography variant="h5" sx={{ mb: 2 }}>Detalhes adicionais</Typography>
           <TextField fullWidth margin="normal" label="seu identificador (opcional):" value={guestIdentifier} onChange={(e) => setGuestIdentifier(e.target.value)} InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} />
-          <TextField fullWidth multiline rows={4} margin="normal" label="feedback adicional (opcional):" inputProps={{ maxLength: 500 }} value={freeTextFeedback} onChange={(e) => setFreeTextFeedback(e.target.value)} placeholder="compartilhe quaisquer pensamentos ou sugestões aqui..." InputProps={{ startAdornment: (<ChatIcon sx={{ mr: 1, color: "action.active" }} />) }} />
+          <TextField fullWidth multiline rows={4} margin="normal" label="Feedback Adicional (Opcional):" inputProps={{ maxLength: 500 }} value={freeTextFeedback} onChange={(e) => setFreeTextFeedback(e.target.value)} placeholder="Compartilhe quaisquer pensamentos ou sugestões aqui..." InputProps={{ startAdornment: (<ChatIcon sx={{ mr: 1, color: "action.active" }} />) }} />
           <Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "right" }}>{freeTextFeedback.length}/500 caracteres</Typography>
-          <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>enviar feedback</Button>
+          <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>Enviar Feedback</Button>
         </Box>
       );
     }
@@ -367,11 +367,11 @@ const handleSubmit = async (e) => {
       <Grid container justifyContent="flex-end" sx={{ mb: 2 }}>
         <Grid item xs={12} sm={4}>
           <FormControl fullWidth size="small">
-            <InputLabel id="language-select-label">idioma</InputLabel>
+            <InputLabel id="language-select-label">Idioma</InputLabel>
             <Select
               labelId="language-select-label"
               value={selectedLanguage}
-              label="idioma"
+              label="Idioma"
               onChange={(e) => setSelectedLanguage(e.target.value)}
             >
               {availableLanguages.map((langCode) => (

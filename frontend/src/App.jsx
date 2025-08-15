@@ -6,6 +6,7 @@ import SurveyViewPage from './pages/SurveyViewPage';
 import AdminFormsPage from './pages/AdminFormsPage';
 import FormEditorPage from './pages/FormEditorPage';
 import ReportPage from './pages/ReportPage';
+
 import AdminLayout from './layouts/AdminLayout';
 import AdminCompaniesPage from './pages/AdminCompaniesPage';
 import CompanyForm from './components/CompanyForm';
@@ -53,6 +54,9 @@ function App() {
             <Route path="forms/new" element={<FormEditorPage />} />
             <Route path="forms/edit/:formId" element={<FormEditorPage />} />
             <Route path="reports" element={<ReportPage />} />
+            {/* <Route path="forms/:formId/preview" element={<PreviewPage />} /> */}
+            
+            
 
                       {/* rotas para Company */}
           <Route path="/admin/companies" element={<AdminCompaniesPage />} />
