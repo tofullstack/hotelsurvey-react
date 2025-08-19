@@ -32,6 +32,23 @@ import {
 } from "@mui/icons-material";
 import CompanyService from "../services/company.service";
 
+// NOVO: Lista de idiomas para o menu select
+const baseLanguages = [
+  'pt-BR', 'en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR', 'zh-CN',
+];
+
+const languageNames = {
+  'pt-BR': 'Português',
+  'en-US': 'English',
+  'de-DE': 'Deutsch',
+  'es-ES': 'Español',
+  'fr-FR': 'Français',
+  'it-IT': 'Italiano',
+  'ja-JP': '日本語 (Japonês)',
+  'ko-KR': '한국어 (Coreano)',
+  'zh-CN': '中文 (Chinês)',
+};
+
 const FormEditorPage = () => {
   const { formId } = useParams();
   const navigate = useNavigate();
@@ -143,14 +160,23 @@ const FormEditorPage = () => {
   const handleQuestionChange = (questionIndex, e) => {
     const { name, value, type, checked } = e.target;
     const newQuestions = [...formData.questions];
-    newQuestions[questionIndex] = {
-      ...newQuestions[questionIndex],
-      [name]: type === "checkbox" ? checked : value,
-    };
+    
+    // ATUALIZAÇÃO: Lógica para preencher o campo 'options' automaticamente para o tipo 'SCALE'
+    if (name === "type" && value === "SCALE") {
+      newQuestions[questionIndex] = {
+        ...newQuestions[questionIndex],
+        type: value,
+        options: "1, 2, 3, 4, 5",
+      };
+    } else {
+      newQuestions[questionIndex] = {
+        ...newQuestions[questionIndex],
+        [name]: type === "checkbox" ? checked : value,
+      };
+    }
     setFormData((prev) => ({ ...prev, questions: newQuestions }));
   };
   
-  // FUNÇÃO QUE ESTAVA FALTANDO, ADICIONADA AQUI
   const handleTranslationChange = (questionIndex, translationIndex, e) => {
     const { name, value } = e.target;
     const newQuestions = [...formData.questions];
@@ -240,11 +266,10 @@ const FormEditorPage = () => {
     setError(null);
 
     try {
-      // Mapeamento dos IDs temporários para as perguntas
       const tempIdMap = {};
       formData.questions.forEach((q, index) => {
         if (q.id.toString().startsWith("temp-")) {
-          tempIdMap[q.id] = index; // Armazena a posição da pergunta
+          tempIdMap[q.id] = index;
         }
       });
 
@@ -310,7 +335,7 @@ const FormEditorPage = () => {
         triggers: formData.triggers.map((t) => ({
           ...t,
           questionId: t.questionId.toString().startsWith("temp-")
-            ? tempIdMap[t.questionId] // Mapeia o ID temporário para a posição
+            ? tempIdMap[t.questionId]
             : t.questionId,
         })),
       };
@@ -369,15 +394,24 @@ const FormEditorPage = () => {
                 required
               />
             </Grid>
+            {/* NOVO: Substituindo o TextField por um Select para o idioma */}
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Idioma Padrão (e.g., pt-BR, en-US)"
-                name="language"
-                value={formData.language}
-                onChange={handleInputChange}
-                required
-              />
+              <FormControl fullWidth required>
+                <InputLabel id="language-label">Idioma Padrão</InputLabel>
+                <Select
+                  labelId="language-label"
+                  name="language"
+                  value={formData.language}
+                  onChange={handleInputChange}
+                  label="Idioma Padrão"
+                >
+                  {baseLanguages.map((langCode) => (
+                    <MenuItem key={langCode} value={langCode}>
+                      {languageNames[langCode]}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth required>
@@ -514,6 +548,8 @@ const FormEditorPage = () => {
                         name="options"
                         value={q.options}
                         onChange={(e) => handleQuestionChange(index, e)}
+                        // NOVO: Desabilita o campo se o tipo for 'SCALE'
+                        disabled={q.type === "SCALE"}
                       />
                     </Grid>
                   )}
@@ -573,16 +609,23 @@ const FormEditorPage = () => {
                   </Box>
                   {q.translations.map((t, tIndex) => (
                     <Grid container spacing={2} key={tIndex} sx={{ mb: 2 }}>
+                      {/* NOVO: Adiciona o Select para o idioma da tradução */}
                       <Grid item xs={12} sm={5}>
-                        <TextField
-                          fullWidth
-                          label="Código do Idioma (e.g., pt-BR)"
-                          name="language"
-                          value={t.language}
-                          onChange={(e) =>
-                            handleTranslationChange(index, tIndex, e)
-                          }
-                        />
+                        <FormControl fullWidth>
+                          <InputLabel>Idioma</InputLabel>
+                          <Select
+                            name="language"
+                            value={t.language}
+                            onChange={(e) => handleTranslationChange(index, tIndex, e)}
+                            label="Idioma"
+                          >
+                            {baseLanguages.map((langCode) => (
+                              <MenuItem key={langCode} value={langCode}>
+                                {languageNames[langCode]}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
                       </Grid>
                       <Grid item xs={12} sm={6}>
                         <TextField

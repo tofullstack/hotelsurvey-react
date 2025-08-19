@@ -12,13 +12,13 @@ export const AuthProvider = ({ children }) => {
     if (token) {
       try {
         const decodedUser = jwtDecode(token);
-        // verifique a expiração do token (opcional, mas recomendado)
+        // verifica a expiração do token
         if (decodedUser.exp * 1000 < Date.now()) {
           // token expirado
           sessionStorage.removeItem('authToken');
           setUser(null);
         } else {
-          // extraia as informações necessárias do token decodificado
+          // extrai as informações necessárias do token decodificado
           // valida que o backend envia estas informações no token
           setUser({
             id: decodedUser.userId,

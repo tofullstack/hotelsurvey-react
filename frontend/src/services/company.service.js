@@ -3,7 +3,7 @@ import api from './api';
 const COMPANY_ADMIN_BASE_URL = '/companies';
 
 const CompanyService = {
-    getAllCompanies: async (params) => { // <-- O método agora aceita um objeto 'params'
+    getAllCompanies: async (params) => {
         try {
             const res = await api.get(COMPANY_ADMIN_BASE_URL, { params });
             return res.data;

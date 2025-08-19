@@ -13,15 +13,6 @@ const AuthService = {
     }
   },
 
-  createUser: async (userData) => {
-    try {
-      const response = await api.post(`${AUTH_BASE_URL}/users`, userData);
-      return response.data;
-    } catch (error) {
-      console.error('Create user error:', error.response?.data || error.message);
-      throw error;
-    }
-  },
 
   changePassword: async (passwordData) => {
     try {
@@ -33,16 +24,6 @@ const AuthService = {
     }
   },
 
-  // TODO: lembrar de inserir os outros métodos de gerenciamento de usuário (desativar, ativar, etc.) apos testes
-  getUsers: async () => {
-    try {
-      const response = await api.get(`${AUTH_BASE_URL}/users`);
-      return response.data;
-    } catch (error) {
-      console.error('Get users error:', error.response?.data || error.message);
-      throw error;
-    }
-  }
 };
 
 export default AuthService;

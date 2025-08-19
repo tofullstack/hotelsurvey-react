@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -6,12 +7,31 @@ import SurveyViewPage from './pages/SurveyViewPage';
 import AdminFormsPage from './pages/AdminFormsPage';
 import FormEditorPage from './pages/FormEditorPage';
 import ReportPage from './pages/ReportPage';
-
 import AdminLayout from './layouts/AdminLayout';
 import AdminCompaniesPage from './pages/AdminCompaniesPage';
 import CompanyForm from './components/CompanyForm';
+import ChangePasswordPage from './pages/ChangePasswordPage';
+import UserManagementPage from './pages/UserManagementPage';
+import AccessDeniedPage from './pages/AccessDeniedPage'; 
 
-// componente de guarda de rota para ADMIN
+const PrivateRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <p className="text-center mt-5">Carregando...</p>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (user.mustChangePassword) {
+    return <Navigate to="/change-password" replace />;
+  }
+
+  return children;
+};
+
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
@@ -19,9 +39,17 @@ const AdminRoute = ({ children }) => {
     return <p className="text-center mt-5">Carregando informações do usuário...</p>;
   }
 
-  // se o usuário não está logado ou não é ADMIN, redireciona para o login
-  if (!user || user.profile !== 'ADMIN') {
+  if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Redireciona para a página de acesso negado se o perfil não for ADMIN
+  if (user.profile !== 'ADMIN') {
+    return <Navigate to="/access-denied" replace />;
+  }
+  
+  if (user.mustChangePassword) {
+    return <Navigate to="/change-password" replace />;
   }
 
   return children;
@@ -32,44 +60,24 @@ function App() {
     <AuthProvider>
       <Router>
         <Routes>
-          {/* rotas Públicas */}
           <Route path="/login" element={<LoginPage />} />
-          {/* rota para o hóspede responder a pesquisa */}
-
           <Route path="/survey/:formId/:language" element={<SurveyViewPage />} />
-
-
-
-
-          {/* rotas Administrativas (Protegidas por AdminRoute) */}
-          {/* <Route path="/admin" element={<AdminRoute><AdminFormsPage /></AdminRoute>} />
-          <Route path="/admin/forms" element={<AdminRoute><AdminFormsPage /></AdminRoute>} />
-          <Route path="/admin/forms/new" element={<AdminRoute><FormEditorPage /></AdminRoute>} />
-          <Route path="/admin/forms/edit/:formId" element={<AdminRoute><FormEditorPage /></AdminRoute>} />
-          <Route path="/admin/reports" element={<AdminRoute><ReportPage /></AdminRoute>} /> */}
-
-          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+          <Route path="/change-password" element={<ChangePasswordPage />} />
+          <Route path="/access-denied" element={<AccessDeniedPage />} /> 
+          
+          <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
             <Route index element={<AdminFormsPage />} />
             <Route path="forms" element={<AdminFormsPage />} />
             <Route path="forms/new" element={<FormEditorPage />} />
             <Route path="forms/edit/:formId" element={<FormEditorPage />} />
             <Route path="reports" element={<ReportPage />} />
-            {/* <Route path="forms/:formId/preview" element={<PreviewPage />} /> */}
+            <Route path="companies" element={<AdminCompaniesPage />} />
+            <Route path="companies/new" element={<CompanyForm />} />
+            <Route path="companies/edit/:id" element={<CompanyForm />} />
             
-            
-
-                      {/* rotas para Company */}
-          <Route path="/admin/companies" element={<AdminCompaniesPage />} />
-          <Route path="/admin/companies/new" element={<CompanyForm />} />
-          <Route path="/admin/companies/edit/:id" element={<CompanyForm />} />
+            <Route path="users" element={<AdminRoute><UserManagementPage /></AdminRoute>} />
           </Route>
 
-
-
-
-
-
-          {/* rota padrão: Redireciona para o login se nenhuma rota corresponder */}
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>

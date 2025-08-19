@@ -4,6 +4,7 @@ import QRCodeDisplay from '../components/QRCodeDisplay';
 import { Link } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import Modal from '@mui/material/Modal';
+import PreviewModal from '../components/PreviewModal';
 
 
 import {
@@ -46,7 +47,20 @@ const AdminFormsPage = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const formsPerPage = 5;
+  const formsPerPage = 10;
+
+  const [openPreviewModal, setOpenPreviewModal] = useState(false);
+  const [selectedFormId, setSelectedFormId] = useState(null);
+
+  const handleOpenPreviewModal = (formId) => {
+    setSelectedFormId(formId);
+    setOpenPreviewModal(true);
+  };
+
+  const handleClosePreviewModal = () => {
+    setOpenPreviewModal(false);
+    setSelectedFormId(null);
+  };
 
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
@@ -173,8 +187,7 @@ const AdminFormsPage = () => {
                         Editar
                       </Button>
                       <Button
-                        component={Link}
-                        to={`/admin/forms/preview/${form.id}`}
+                        onClick={() => handleOpenPreviewModal(form.id)}
                         size="small"
                         variant="outlined"
                         color="secondary"
@@ -247,6 +260,11 @@ const AdminFormsPage = () => {
       </Modal>
 
 
+      <PreviewModal
+        open={openPreviewModal}
+        handleClose={handleClosePreviewModal}
+        formId={selectedFormId}
+      />
 
     </Container>
 

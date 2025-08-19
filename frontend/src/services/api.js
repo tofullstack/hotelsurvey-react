@@ -1,15 +1,16 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // URL base do backend Spring Boot
+  baseURL: 'http://localhost:8080/api',
 });
 
-// interceptor para adicionar o token JWT em todas as requisições protegidas
 api.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem('authToken'); // recupera o token da sessionStorage
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`; // adiciona o token ao cabeçalho Authorization
+    if (!config.url.endsWith('/auth/login')) {
+      const token = sessionStorage.getItem('authToken');
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },

@@ -12,6 +12,7 @@ import {
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 
 const drawerWidth = 120;
 
@@ -31,6 +32,11 @@ const menuItems = [
     icon: <BarChartIcon />,
     path: '/admin/reports',
   },
+  {
+    text: 'Usuários',
+    icon: <ManageAccountsIcon />,
+    path: '/admin/users',
+  }
 ];
 
 const AdminLayout = () => {
