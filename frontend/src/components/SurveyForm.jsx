@@ -46,7 +46,6 @@ const style = {
 };
 
 const SurveyForm = ({ formId, language }) => {
-  //const { formId, language } = useParams();
 
   const [surveyStructure, setSurveyStructure] = useState(null);
   const [allAnswers, setAllAnswers] = useState({}); // estado unificado para todas as respostas
@@ -90,8 +89,6 @@ const SurveyForm = ({ formId, language }) => {
       try {
         const data = await PublicSurveyService.getSurveyQuestions(formId, selectedLanguage);
         setSurveyStructure(data);
-        //  console.log("survey carregado:", data);
-        console.log("surveyStructure:", surveyStructure)
 
 
         if (data && data.questions) {
@@ -117,7 +114,7 @@ const SurveyForm = ({ formId, language }) => {
           data.questions.forEach((question) => {
             initialAnswers[question.id] = {
               value: "",
-              surveySectionId: question.surveySectionId // assume que o backend retorna o id da seção na pergunta
+              surveySectionId: question.surveySectionId 
             };
           });
           setAllAnswers(initialAnswers);
@@ -132,7 +129,6 @@ const SurveyForm = ({ formId, language }) => {
   }, [formId, selectedLanguage]);
 
   const handleAnswerChange = async (questionId, value) => {
-    // atualiza o estado unificado com o valor da resposta
     const currentQuestion = surveyStructure.questions.find(q => q.id === questionId);
     if (!currentQuestion) return;
 
@@ -140,31 +136,27 @@ const SurveyForm = ({ formId, language }) => {
       ...prev,
       [questionId]: {
         value: value,
-        surveySectionId: currentQuestion.surveySectionId // usa o id da seção da pergunta principal
+        surveySectionId: currentQuestion.surveySectionId 
       }
     }));
 
-    // verifica se a questão é do tipo 'scale' e se a avaliação é negativa (3 ou menos)
     if (currentQuestion && currentQuestion.type === 'SCALE' && value <= 3) {
       try {
-        // chama o serviço para buscar formulários condicionais
         const conditionalForms = await ConditionalTriggerService.getConditionalForms(
           questionId,
-          value.toString(), // envia o valor da avaliação como string
+          value.toString(), 
           selectedLanguage
         );
 
         if (conditionalForms && conditionalForms.length > 0) {
-          // se um formulário condicional for encontrado, abre o modal
           setIsModalOpen(true);
           setConditionalForm(conditionalForms[0]);
 
-          // inicializa as respostas do formulário condicional
           const initialConditionalAnswers = {};
           conditionalForms[0].questions.forEach(q => initialConditionalAnswers[q.id] = "");
           setConditionalAnswers(initialConditionalAnswers);
         } else {
-          // se não houver formulário condicional, avança para a próxima pergunta
+
           setTimeout(() => {
             if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
               setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -175,7 +167,6 @@ const SurveyForm = ({ formId, language }) => {
         }
       } catch (err) {
         console.error('error fetching conditional form:', err);
-        // em caso de erro, avança para a próxima pergunta para não travar o fluxo
         setTimeout(() => {
           if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
             setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -185,7 +176,6 @@ const SurveyForm = ({ formId, language }) => {
         }, 500);
       }
     } else {
-      // se a avaliação for positiva (acima de 3) ou não for do tipo 'scale', avança para a próxima pergunta
       setTimeout(() => {
         if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
           setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -205,24 +195,21 @@ const SurveyForm = ({ formId, language }) => {
 
   const handleConditionalSubmit = async (e) => {
     e.preventDefault();
-    // salva as respostas do modal no estado unificado
     setAllAnswers(prev => {
       const newAnswers = { ...prev };
       conditionalForm.questions.forEach(q => {
         newAnswers[q.id] = {
           value: conditionalAnswers[q.id],
-          surveySectionId: conditionalForm.id // usa o id da seção do form condicional
+          surveySectionId: conditionalForm.id 
         };
       });
       return newAnswers;
     });
 
-    // reseta o estado da modal e do formulário condicional
     setConditionalForm(null);
     setConditionalAnswers({});
     setIsModalOpen(false);
 
-    // continua para a próxima pergunta do formulário principal
     setTimeout(() => {
       if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
         setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -232,24 +219,17 @@ const SurveyForm = ({ formId, language }) => {
     }, 500);
   };
 
-  // Em SurveyForm.jsx
-
-  // Em SurveyForm.jsx
-// Em SurveyForm.jsx
 
 const handleSubmit = async (e) => {
   e.preventDefault();
   setFormPhase('submitting');
   setError(null);
 
-  // 1. Crie uma lista de perguntas a partir do estado `allAnswers`
   const submittedAnswers = Object.keys(allAnswers).map(questionId => {
     const answerData = allAnswers[questionId];
 
     return {
       questionId: parseInt(questionId),
-      // Garante que o surveySectionId nunca seja nulo
-      // Usa o ID da seção do estado, se existir, senão usa o ID do formulário principal como fallback
       surveySectionId: answerData.surveySectionId || surveyStructure.id,
       answerValue: answerData.value || "",
       didNotUseService: false,
@@ -328,7 +308,6 @@ const handleSubmit = async (e) => {
         return (
           <Card key={surveyStructure.id} sx={{ mb: 4, boxShadow: 1 }}>
             <CardHeader
-              /*title={<Typography variant="h4" sx={{ textAlign: 'center' }}>{surveyStructure.name}</Typography>}*/
               sx={{ backgroundColor: "primary.main", color: "primary.contrastText" }}
             />
             <CardContent>
@@ -363,7 +342,7 @@ const handleSubmit = async (e) => {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ my: 5 }}>
+    <Container maxWidth="md" sx={{ my: 5 }}>
       <Grid container justifyContent="flex-end" sx={{ mb: 2 }}>
         <Grid item xs={12} sm={4}>
           <FormControl fullWidth size="small">

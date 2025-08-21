@@ -52,6 +52,35 @@ const AdminFormsPage = () => {
   const [openPreviewModal, setOpenPreviewModal] = useState(false);
   const [selectedFormId, setSelectedFormId] = useState(null);
 
+  const [openDeactivateModal, setOpenDeactivateModal] = useState(false);
+  const [selectedFormForDeactivate, setSelectedFormForDeactivate] = useState(null);
+
+
+  const handleOpenDeactivateModal = (form) => {
+    setSelectedFormForDeactivate(form);
+    setOpenDeactivateModal(true);
+  };
+
+  const handleCloseDeactivateModal = () => {
+    setSelectedFormForDeactivate(null);
+    setOpenDeactivateModal(false);
+  };
+
+  const confirmDeactivate = async () => {
+    if (!selectedFormForDeactivate) return;
+    try {
+      await FormService.deactivateForm(selectedFormForDeactivate.id);
+      setForms(forms.map(f =>
+        f.id === selectedFormForDeactivate.id ? { ...f, active: false } : f
+      ));
+    } catch (err) {
+      setError(err.response?.data?.message || 'Falha ao desativar formulário.');
+    } finally {
+      handleCloseDeactivateModal();
+    }
+  };
+
+
   const handleOpenPreviewModal = (formId) => {
     setSelectedFormId(formId);
     setOpenPreviewModal(true);
@@ -92,16 +121,6 @@ const AdminFormsPage = () => {
     return `http://localhost:5173/survey/${form.id}/${languageCode}`;
   };
 
-  const handleDeactivate = async (formId) => {
-    if (window.confirm("Tem certeza que deseja desativar esse formulário?")) {
-      try {
-        await FormService.deactivateForm(formId);
-        setForms(forms.map(f => f.id === formId ? { ...f, active: false } : f));
-      } catch (err) {
-        setError(err.response?.data?.message || 'Falha ao desativar formulário.');
-      }
-    }
-  };
 
   const handleActivate = async (formId) => {
     try {
@@ -172,12 +191,14 @@ const AdminFormsPage = () => {
                         variant="outlined"
                         color={form.active ? 'warning' : 'success'}
                         onClick={() =>
-                          form.active ? handleDeactivate(form.id) : handleActivate(form.id)
+                          form.active ? handleOpenDeactivateModal(form) : handleActivate(form.id)
                         }
                         startIcon={form.active ? <PauseIcon /> : <PlayArrowIcon />}
                       >
                         {form.active ? 'Desativar' : 'Ativar'}
-                      </Button><Button
+                      </Button>
+
+                      <Button
                         component={Link}
                         to={`/admin/forms/edit/${form.id}`}
                         size="small"
@@ -225,6 +246,42 @@ const AdminFormsPage = () => {
           color="primary"
         />
       </Box>
+
+      <Modal
+        open={openDeactivateModal}
+        onClose={handleCloseDeactivateModal}
+        aria-labelledby="modal-deactivate-title"
+      >
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            bgcolor: 'background.paper',
+            boxShadow: 24,
+            borderRadius: 2,
+            p: 4,
+            width: 400,
+            textAlign: 'center',
+          }}
+        >
+          <Typography id="modal-deactivate-title" variant="h6" mb={2}>
+            Desativar formulário
+          </Typography>
+          <Typography mb={3}>
+            Tem certeza que deseja desativar <strong>{selectedFormForDeactivate?.name}</strong>?
+          </Typography>
+          <Stack direction="row" spacing={2} justifyContent="center">
+            <Button onClick={handleCloseDeactivateModal} variant="outlined">
+              Cancelar
+            </Button>
+            <Button onClick={confirmDeactivate} variant="contained" color="error">
+              Confirmar
+            </Button>
+          </Stack>
+        </Box>
+      </Modal>
 
 
       <Modal

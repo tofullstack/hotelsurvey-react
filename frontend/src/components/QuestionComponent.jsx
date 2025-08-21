@@ -11,9 +11,57 @@ import {
   MenuItem,
   Box,
   Typography,
-  Rating,
 } from "@mui/material";
 
+import { styled } from "@mui/material/styles";
+import Rating from "@mui/material/Rating";
+import PropTypes from "prop-types";
+
+import SentimentVeryDissatisfiedIcon from "@mui/icons-material/SentimentVeryDissatisfied";
+import SentimentDissatisfiedIcon from "@mui/icons-material/SentimentDissatisfied";
+import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
+import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAltOutlined";
+import SentimentVerySatisfiedIcon from "@mui/icons-material/SentimentVerySatisfied";
+
+// === carinhas ===
+const StyledRating = styled(Rating)(({ theme }) => ({
+  "& .MuiRating-iconEmpty .MuiSvgIcon-root": {
+    color: theme.palette.action.disabled,
+  },
+}));
+
+const customIcons = {
+  1: {
+    icon: <SentimentVeryDissatisfiedIcon sx={{ fontSize: 60 }} color="error" />,
+    label: "Muito insatisfeito",
+  },
+  2: {
+    icon: <SentimentDissatisfiedIcon sx={{ fontSize: 60 }} color="error" />,
+    label: "Insatisfeito",
+  },
+  3: {
+    icon: <SentimentSatisfiedIcon sx={{ fontSize: 60 }} color="warning" />,
+    label: "Neutro",
+  },
+  4: {
+    icon: <SentimentSatisfiedAltIcon sx={{ fontSize: 60 }} color="success" />,
+    label: "Satisfeito",
+  },
+  5: {
+    icon: <SentimentVerySatisfiedIcon sx={{ fontSize: 60 }} color="success" />,
+    label: "Muito satisfeito",
+  },
+};
+
+function IconContainer(props) {
+  const { value, ...other } = props;
+  return <span {...other}>{customIcons[value].icon}</span>;
+}
+IconContainer.propTypes = {
+  value: PropTypes.number.isRequired,
+};
+
+// === componente principal ===
 const QuestionComponent = ({ question, value, onChange, isSectionDenied, language }) => {
   if (isSectionDenied) {
     return null;
@@ -23,13 +71,12 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
 
   let translatedLabel = "Questão sem label";
 
-  // 1. Tentar encontrar a tradução no array 'translations' usando o idioma da URL
-  const translatedLabelObject = question.translations?.find(t => t.language === language);
+  const translatedLabelObject = question.translations?.find(
+    (t) => t.language === language
+  );
   if (translatedLabelObject) {
     translatedLabel = translatedLabelObject.label;
-  }
-  // 2. Se a tradução específica não for encontrada, usar a label direta como fallback
-  else if (question.label) {
+  } else if (question.label) {
     translatedLabel = question.label;
   }
 
@@ -89,11 +136,13 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
         };
         return (
           <Box mt={1}>
-            <Rating
+            <StyledRating
               name={`rating-question-${question.id}`}
               value={Number(value) || 0}
-              onChange={handleRatingChange}
-              precision={1}
+              onChange={(event, newValue) => handleRatingChange(event, newValue)}
+              IconContainerComponent={IconContainer}
+              getLabelText={(val) => customIcons[val].label}
+              highlightSelectedOnly
               max={maxRating}
               sx={{ fontSize: 60 }}
             />
