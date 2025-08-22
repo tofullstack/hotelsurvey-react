@@ -330,9 +330,9 @@ const handleSubmit = async (e) => {
       return (
         <Box component="form" onSubmit={handleSubmit}>
           <Typography variant="h5" sx={{ mb: 2 }}>Detalhes adicionais</Typography>
-          <TextField fullWidth margin="normal" label="seu identificador (opcional):" value={guestIdentifier} onChange={(e) => setGuestIdentifier(e.target.value)} InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} />
+          <TextField fullWidth margin="normal" label="Seu indicador(Opcional):" value={guestIdentifier} onChange={(e) => setGuestIdentifier(e.target.value)} InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} />
           <TextField fullWidth multiline rows={4} margin="normal" label="Feedback Adicional (Opcional):" inputProps={{ maxLength: 500 }} value={freeTextFeedback} onChange={(e) => setFreeTextFeedback(e.target.value)} placeholder="Compartilhe quaisquer pensamentos ou sugestões aqui..." InputProps={{ startAdornment: (<ChatIcon sx={{ mr: 1, color: "action.active" }} />) }} />
-          <Typography variant="caption" color="text.secondary" sx={{ display: "block", textAlign: "right" }}>{freeTextFeedback.length}/500 caracteres</Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: "flex", textAlign: "right" }}>{freeTextFeedback.length}/500 Caracteres</Typography>
           <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>Enviar Feedback</Button>
         </Box>
       );

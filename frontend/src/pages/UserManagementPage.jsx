@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next'; 
 import {
   Table,
   TableBody,
@@ -25,6 +26,8 @@ import UserService from '../services/user.service';
 import UserForm from '../components/UserForm';
 
 const UserManagementPage = () => {
+  const { t } = useTranslation(); 
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -54,12 +57,10 @@ const UserManagementPage = () => {
         user.id === selectedUserForDeactivate.id ? { ...user, active: false } : user
       ));
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao desativar usuário.');
+      setError(err.response?.data?.message || t('failToDeactivateUser'));
     } finally {
       handleCloseDeactivateModal();
-      // setSelectedUserForDeactivate(null);
     }
-
   };
 
 
@@ -69,7 +70,7 @@ const UserManagementPage = () => {
       const data = await UserService.getUsers();
       setUsers(data);
     } catch (err) {
-      setError('Falha ao carregar os usuários.');
+      setError(t('failToLoadUsers'));
       console.error(err);
     } finally {
       setLoading(false);
@@ -97,43 +98,28 @@ const UserManagementPage = () => {
           profile: userData.profile,
           companyId: userData.companyId,
         };
-
         await UserService.updateUser(selectedUser.id, userToUpdate);
-        alert('Usuário atualizado com sucesso!');
+        alert(t('userUpdatedSuccessfully'));
       } else {
         await UserService.createUser(userData);
-        alert('Usuário criado com sucesso!');
+        alert(t('userCreatedSuccessfully'));
       }
       handleCloseModal();
       fetchUsers();
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao salvar usuário.');
+      setError(err.response?.data?.message || t('failToSaveUser'));
       console.error(err);
     }
   };
-
-  // const handleDeactivate = async (userId) => {
-  //   if (window.confirm('Tem certeza que deseja desativar este usuário?')) {
-  //     try {
-  //       await UserService.deactivateUser(userId);
-  //       alert('Usuário desativado com sucesso!');
-  //       fetchUsers();
-  //     } catch (err) {
-  //       setError(err.response?.data?.message || 'Erro ao desativar usuário.');
-  //       console.error(err);
-  //     }
-  //   }
-  // };
 
   const handleActivate = async (userId) => {
       try {
         await UserService.activateUser(userId);
         fetchUsers();
       } catch (err) {
-        setError(err.response?.data?.message || 'Erro ao ativar usuário.');
+        setError(err.response?.data?.message || t('failToActivateUser'));
         console.error(err);
       }
-    
   };
 
   if (loading) {
@@ -152,7 +138,7 @@ const UserManagementPage = () => {
     <Container maxWidth="xl" sx={{ my: 4 }}>
       <Box mb={4}>
         <Typography variant="h6" gutterBottom>
-          Gerenciamento de Usuários
+          {t("manageUsers")}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
           <Button
@@ -160,19 +146,19 @@ const UserManagementPage = () => {
             startIcon={<AddIcon />}
             onClick={() => handleOpenModal()}
           >
-            Criar Usuário
+            {t('createUser')}
           </Button>
         </Box>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Login</TableCell>
-                <TableCell>Perfil</TableCell>
-                <TableCell>Empresa</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell align="right">Ações</TableCell>
+                <TableCell>{t('userId')}</TableCell>
+                <TableCell>{t('userLogin')}</TableCell>
+                <TableCell>{t('userProfile')}</TableCell>
+                <TableCell>{t('userCompany')}</TableCell>
+                <TableCell>{t('userStatus')}</TableCell>
+                <TableCell align="right">{t('actions')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -181,10 +167,10 @@ const UserManagementPage = () => {
                   <TableCell>{user.id}</TableCell>
                   <TableCell>{user.login}</TableCell>
                   <TableCell>{user.profile}</TableCell>
-                  <TableCell>{user.companyName || 'N/A'}</TableCell>
+                  <TableCell>{user.companyName || t('notApplicable')}</TableCell>
                   <TableCell>
                     <span style={{ color: user.active ? 'green' : 'red' }}>
-                      {user.active ? 'Ativo' : 'Inativo'}
+                      {user.active ? t('active') : t('inactive')}
                     </span>
                   </TableCell>
                   <TableCell align="right">
@@ -193,9 +179,10 @@ const UserManagementPage = () => {
                       <Button onClick={() => handleOpenDeactivateModal(user)} color="error">
                         <DeleteIcon />
                       </Button>
-
                     ) : (
-                      <Button onClick={() => handleActivate(user.id)} color="success">Ativar</Button>
+                      <Button onClick={() => handleActivate(user.id)} color="success">
+                        {t('activate')}
+                      </Button>
                     )}
                   </TableCell>
                 </TableRow>
@@ -205,7 +192,7 @@ const UserManagementPage = () => {
         </TableContainer>
 
         <Dialog open={openModal} onClose={handleCloseModal}>
-          <DialogTitle>{selectedUser ? 'Editar Usuário' : 'Criar Novo Usuário'}</DialogTitle>
+          <DialogTitle>{selectedUser ? t('editUser') : t('createNewUser')}</DialogTitle>
           <DialogContent>
             <UserForm user={selectedUser} onSave={handleSaveUser} onCancel={handleCloseModal} />
           </DialogContent>
@@ -216,20 +203,21 @@ const UserManagementPage = () => {
         open={openDeactivateModal}
         onClose={handleCloseDeactivateModal}
       >
-        <DialogTitle>Desativar Usuário</DialogTitle>
+        <DialogTitle>{t('deactivateUser')}</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Tem certeza que deseja desativar o usuário <strong>{selectedUserForDeactivate?.login}</strong>?
+            {t('confirmDeactivateUser', { userLogin: selectedUserForDeactivate?.login })}
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDeactivateModal}>Cancelar</Button>
+          <Button onClick={handleCloseDeactivateModal}>
+            {t('cancel')}
+          </Button>
           <Button onClick={confirmDeactivateUser} color="error" variant="contained">
-            Confirmar
+            {t('confirm')}
           </Button>
         </DialogActions>
       </Dialog>
-
     </Container>
   );
 };

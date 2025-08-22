@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FormService from "../services/form.service";
+import { useTranslation, Trans } from "react-i18next";
 
 import {
   Container,
@@ -32,7 +33,6 @@ import {
 } from "@mui/icons-material";
 import CompanyService from "../services/company.service";
 
-// NOVO: Lista de idiomas para o menu select
 const baseLanguages = [
   'pt-BR', 'en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR', 'zh-CN',
 ];
@@ -78,6 +78,8 @@ const FormEditorPage = () => {
   const [isNewForm, setIsNewForm] = useState(true);
   const [companies, setCompanies] = useState([]);
   const [conditionalForms, setConditionalForms] = useState([]);
+  const { t } = useTranslation();
+
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -112,7 +114,7 @@ const FormEditorPage = () => {
         } catch (err) {
           setError(
             err.response?.data?.message ||
-              "Falha ao carregar formulário para edição"
+            t("failToLoadForms")
           );
           setLoading(false);
         }
@@ -133,7 +135,7 @@ const FormEditorPage = () => {
           );
           setConditionalForms(response);
         } catch (err) {
-          console.error("Erro ao carregar formulários condicionais", err);
+          console.error(t("failToLoadConditionalForms"), err);
         }
       }
     };
@@ -160,8 +162,7 @@ const FormEditorPage = () => {
   const handleQuestionChange = (questionIndex, e) => {
     const { name, value, type, checked } = e.target;
     const newQuestions = [...formData.questions];
-    
-    // ATUALIZAÇÃO: Lógica para preencher o campo 'options' automaticamente para o tipo 'SCALE'
+
     if (name === "type" && value === "SCALE") {
       newQuestions[questionIndex] = {
         ...newQuestions[questionIndex],
@@ -176,7 +177,7 @@ const FormEditorPage = () => {
     }
     setFormData((prev) => ({ ...prev, questions: newQuestions }));
   };
-  
+
   const handleTranslationChange = (questionIndex, translationIndex, e) => {
     const { name, value } = e.target;
     const newQuestions = [...formData.questions];
@@ -368,7 +369,7 @@ const FormEditorPage = () => {
         mb={4}
         fontWeight="bold"
       >
-        {isNewForm ? "Novo Formulário" : `Editar Formulário: ${formData.name}`}
+        {isNewForm ? t("newForm") : t("editForm", { formName: formData.name })}
       </Typography>
 
       {error && (
@@ -380,30 +381,29 @@ const FormEditorPage = () => {
       <Box component={Paper} elevation={3} sx={{ p: { xs: 2, md: 4 } }}>
         <Box component="form" onSubmit={handleSubmit}>
           <Typography variant="h5" component="h2" mb={3} fontWeight="bold">
-            Informações Gerais
+            {t("geralInformation")}
           </Typography>
 
           <Grid container spacing={3}>
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Nome do Formulário"
+                label={t("menu_form_name")}
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
                 required
               />
             </Grid>
-            {/* NOVO: Substituindo o TextField por um Select para o idioma */}
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth required>
-                <InputLabel id="language-label">Idioma Padrão</InputLabel>
+                <InputLabel id="language-label">{t("menu_form_language")}</InputLabel>
                 <Select
                   labelId="language-label"
                   name="language"
                   value={formData.language}
                   onChange={handleInputChange}
-                  label="Idioma Padrão"
+                  label={t("menu_form_language")}
                 >
                   {baseLanguages.map((langCode) => (
                     <MenuItem key={langCode} value={langCode}>
@@ -415,13 +415,13 @@ const FormEditorPage = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth required>
-                <InputLabel id="company-label">Empresa</InputLabel>
+                <InputLabel id="company-label">{t("menu_form_company")}</InputLabel>
                 <Select
                   labelId="company-label"
                   name="companyId"
                   value={formData.companyId}
                   onChange={handleInputChange}
-                  label="Empresa"
+                  label={t("menu_form_company")}
                 >
                   {companies.map((company) => (
                     <MenuItem key={company.id} value={company.id}>
@@ -434,7 +434,7 @@ const FormEditorPage = () => {
             <Grid item xs={12} sm={6}>
               <TextField
                 fullWidth
-                label="Série da Empresa"
+                label={t("menu_form_company_serie")}
                 name="serieEmpresa"
                 value={formData.serieEmpresa}
                 disabled
@@ -450,7 +450,7 @@ const FormEditorPage = () => {
                       name="conditional"
                     />
                   }
-                  label="Formulário Condicional"
+                  label={t("menu_form_conditional_form")}
                 />
                 <FormControlLabel
                   control={
@@ -460,7 +460,7 @@ const FormEditorPage = () => {
                       name="denyUse"
                     />
                   }
-                  label='Permitir opção "Não utilizei este serviço"'
+                  label={t("menu_form_denyUse")}
                 />
                 <FormControlLabel
                   control={
@@ -470,7 +470,7 @@ const FormEditorPage = () => {
                       name="active"
                     />
                   }
-                  label="Ativo"
+                  label={t("menu_form_active")}
                 />
               </FormGroup>
             </Grid>
@@ -479,7 +479,7 @@ const FormEditorPage = () => {
           <Divider sx={{ my: 4 }} />
 
           <Typography variant="h5" component="h3" mb={3} fontWeight="bold">
-            Perguntas
+            {t("menu_form_questions")}
           </Typography>
 
           {formData.questions.map((q, index) => (
@@ -502,7 +502,7 @@ const FormEditorPage = () => {
                     borderBottom: "1px solid #f0f0f0",
                   }}
                 >
-                  <Typography variant="h6">Pergunta {index + 1}</Typography>
+                  <Typography variant="h6">{t("menu_form_question")} {index + 1}</Typography>
                   <IconButton
                     onClick={() => removeQuestion(index)}
                     color="error"
@@ -516,7 +516,7 @@ const FormEditorPage = () => {
                   <Grid item xs={12} sm={8}>
                     <TextField
                       fullWidth
-                      label="Título da Pergunta"
+                      label={t("menu_form_question_title")}
                       name="label"
                       value={q.label}
                       onChange={(e) => handleQuestionChange(index, e)}
@@ -525,18 +525,18 @@ const FormEditorPage = () => {
                   </Grid>
                   <Grid item xs={12} sm={4}>
                     <FormControl fullWidth>
-                      <InputLabel id={`type-label-${index}`}>Tipo</InputLabel>
+                      <InputLabel id={`type-label-${index}`}>{t("menu_form_question_type")}</InputLabel>
                       <Select
                         labelId={`type-label-${index}`}
                         name="type"
                         value={q.type}
-                        label="Type"
+                        label={t("menu_form_question_type")}
                         onChange={(e) => handleQuestionChange(index, e)}
                       >
-                        <MenuItem value="TEXT">Texto</MenuItem>
-                        <MenuItem value="CHOICE">Múltipla Escolha</MenuItem>
-                        <MenuItem value="YES_NO">Sim/Não</MenuItem>
-                        <MenuItem value="SCALE">Escala</MenuItem>
+                        <MenuItem value="TEXT">{t("menu_form_question_option_text")}</MenuItem>
+                        <MenuItem value="CHOICE">{t("menu_form_question_option_multiple_choice")}</MenuItem>
+                        <MenuItem value="YES_NO">{t("menu_form_question_option_single_choice")}</MenuItem>
+                        <MenuItem value="SCALE">{t("menu_form_question_option_scale")}</MenuItem>
                       </Select>
                     </FormControl>
                   </Grid>
@@ -544,11 +544,10 @@ const FormEditorPage = () => {
                     <Grid item xs={12}>
                       <TextField
                         fullWidth
-                        label="Opções (separadas por vírgula)"
+                        label={t("menu_form_question_option_scale_1_to_5")}
                         name="options"
                         value={q.options}
                         onChange={(e) => handleQuestionChange(index, e)}
-                        // NOVO: Desabilita o campo se o tipo for 'SCALE'
                         disabled={q.type === "SCALE"}
                       />
                     </Grid>
@@ -563,7 +562,7 @@ const FormEditorPage = () => {
                             name="mandatory"
                           />
                         }
-                        label="Obrigatória"
+                        label={t("menu_form_question_required")}
                       />
                       <FormControlLabel
                         control={
@@ -573,7 +572,7 @@ const FormEditorPage = () => {
                             name="deniable"
                           />
                         }
-                        label="Opção 'Não Utilizei'"
+                        label={t("menu_form_question_deniable")}
                       />
                     </FormGroup>
                   </Grid>
@@ -597,27 +596,26 @@ const FormEditorPage = () => {
                     }}
                   >
                     <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                      Traduções da Pergunta
+                      {t("menu_form_question_translation_title")}
                     </Typography>
                     <Button
                       onClick={() => addTranslation(index)}
                       startIcon={<AddIcon />}
                       size="small"
                     >
-                      Adicionar
+                      {t("menu_form_add")}
                     </Button>
                   </Box>
-                  {q.translations.map((t, tIndex) => (
+                  {q.translations.map((translation, tIndex) => (
                     <Grid container spacing={2} key={tIndex} sx={{ mb: 2 }}>
-                      {/* NOVO: Adiciona o Select para o idioma da tradução */}
                       <Grid item xs={12} sm={5}>
                         <FormControl fullWidth>
-                          <InputLabel>Idioma</InputLabel>
+                          <InputLabel>{t("menu_form_questions_translation_language")}</InputLabel>
                           <Select
                             name="language"
-                            value={t.language}
+                            value={translation.language}
                             onChange={(e) => handleTranslationChange(index, tIndex, e)}
-                            label="Idioma"
+                            label={t("menu_form_questions_translation_language")}
                           >
                             {baseLanguages.map((langCode) => (
                               <MenuItem key={langCode} value={langCode}>
@@ -630,9 +628,9 @@ const FormEditorPage = () => {
                       <Grid item xs={12} sm={6}>
                         <TextField
                           fullWidth
-                          label="Título Traduzido"
+                          label={t("translatedTitle")}
                           name="label"
-                          value={t.label}
+                          value={translation.label}
                           onChange={(e) =>
                             handleTranslationChange(index, tIndex, e)
                           }
@@ -665,13 +663,13 @@ const FormEditorPage = () => {
             onClick={addQuestion}
             sx={{ mb: 3 }}
           >
-            Adicionar Pergunta
+            {t("addQuestion")}
           </Button>
 
           <Divider sx={{ my: 4 }} />
 
           <Typography variant="h5" component="h3" mb={3} fontWeight="bold">
-            Gatilhos Condicionais
+            {t("conditionalTriggers")}
           </Typography>
           <Box
             p={2}
@@ -691,28 +689,28 @@ const FormEditorPage = () => {
                 formData.questions.filter((q) => q.type !== "TEXT").length === 0
               }
             >
-              Adicionar Gatilho
+              {t("addTrigger")}
             </Button>
-            {formData.triggers.map((t, index) => (
+
+            {formData.triggers.map((trigger, index) => (
               <Grid container spacing={2} key={index} sx={{ mb: 2, mt: 1 }}>
                 <Grid item xs={12} sm={4}>
                   <FormControl fullWidth>
-                    <InputLabel>Pergunta Gatilho</InputLabel>
+                    <InputLabel>{t("triggerQuestion")}</InputLabel>
                     <Select
                       name="questionId"
-                      value={t.questionId}
+                      value={trigger.questionId}
                       onChange={(e) => handleTriggerChange(index, e)}
-                      label="Pergunta Gatilho"
+                      label={t("triggerQuestion")}
                     >
                       {formData.questions
                         .filter((q) => q.type !== "TEXT")
                         .map((q) => (
                           <MenuItem key={q.id} value={q.id}>
                             {q.label ||
-                              `Pergunta ${
-                                formData.questions.findIndex(
-                                  (item) => item.id === q.id
-                                ) + 1
+                              `${t("question")} ${formData.questions.findIndex(
+                                (item) => item.id === q.id
+                              ) + 1
                               }`}
                           </MenuItem>
                         ))}
@@ -722,20 +720,20 @@ const FormEditorPage = () => {
                 <Grid item xs={12} sm={2}>
                   <TextField
                     fullWidth
-                    label="Valor da Resposta"
+                    label={t("triggerValue")}
                     name="triggerValue"
-                    value={t.triggerValue}
+                    value={trigger.triggerValue}
                     onChange={(e) => handleTriggerChange(index, e)}
                   />
                 </Grid>
                 <Grid item xs={12} sm={5}>
                   <FormControl fullWidth>
-                    <InputLabel>Seção de Destino</InputLabel>
+                    <InputLabel>{t("targetSection")}</InputLabel>
                     <Select
                       name="targetSectionId"
-                      value={t.targetSectionId}
+                      value={trigger.targetSectionId}
                       onChange={(e) => handleTriggerChange(index, e)}
-                      label="Seção de Destino"
+                      label={t("targetSection")}
                     >
                       {conditionalForms
                         .filter((form) =>
@@ -762,15 +760,14 @@ const FormEditorPage = () => {
             ))}
             {!formData.companyId && (
               <Typography variant="caption" color="text.secondary">
-                Selecione uma empresa para carregar os formulários
-                condicionais.
+                {t("selectCompanyForConditionals")}
               </Typography>
             )}
             {formData.companyId &&
               conditionalForms.length === 0 &&
               formData.questions.filter((q) => q.type !== "TEXT").length > 0 && (
                 <Typography variant="caption" color="text.secondary">
-                  Nenhum formulário condicional encontrado para esta empresa.
+                  {t("noConditionalFormsFound")}
                 </Typography>
               )}
           </Box>
@@ -784,7 +781,7 @@ const FormEditorPage = () => {
             startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
             sx={{ mt: 3, py: 1.5 }}
           >
-            {isNewForm ? "Criar Formulário" : "Salvar Mudanças"}
+            {isNewForm ? t("createForm") : t("saveChanges")}
           </Button>
         </Box>
       </Box>

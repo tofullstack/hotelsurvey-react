@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Modal,
   Box,
@@ -29,6 +30,8 @@ const style = {
 };
 
 const PreviewModal = ({ open, handleClose, formId }) => {
+  const { t } = useTranslation();
+
   const [formData, setFormData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -42,7 +45,7 @@ const PreviewModal = ({ open, handleClose, formId }) => {
           const data = await FormService.previewForm(formId);
           setFormData(data);
         } catch (err) {
-          setError('Falha ao carregar a pré-visualização.');
+          setError(t('failToLoadPreview'));
           console.error('Error fetching preview data:', err);
         } finally {
           setLoading(false);
@@ -50,7 +53,7 @@ const PreviewModal = ({ open, handleClose, formId }) => {
       };
       fetchPreviewData();
     }
-  }, [open, formId]);
+  }, [open, formId, t]); // Add 't' to the dependency array
 
   return (
     <Modal
@@ -60,7 +63,7 @@ const PreviewModal = ({ open, handleClose, formId }) => {
     >
       <Box sx={style}>
         <Typography id="preview-modal-title" variant="h5" component="h2" mb={2}>
-          Pré-visualização do Formulário
+          {t('formPreviewTitle')}
         </Typography>
         
         {loading && <Box sx={{ display: 'flex', justifyContent: 'center' }}><CircularProgress /></Box>}
@@ -69,18 +72,22 @@ const PreviewModal = ({ open, handleClose, formId }) => {
         {formData && (
           <>
             <Typography variant="h6">{formData.name}</Typography>
-            <Typography variant="body2" color="text.secondary">Empresa: {formData.companyName}</Typography>
+            {/* <Typography variant="body2" color="text.secondary">
+              {t('company')}: {formData.companyName}
+            </Typography> */}
             
             <Divider sx={{ my: 2 }} />
             
-            <Typography variant="h6">Questões:</Typography>
+            <Typography variant="h6">
+              {t('questions')}:
+            </Typography>
             <List>
               {formData.questions.map((question, index) => (
                 <Box key={question.id}>
                   <ListItem>
                     <ListItemText
                       primary={`${index + 1}. ${question.label}`}
-                      secondary={`Tipo: ${question.type} | Obrigatória: ${question.mandatory ? 'Sim' : 'Não'}`}
+                      secondary={`${t('type')}: ${t(question.type)} | ${t('required')}: ${question.mandatory ? t('yes') : t('no')}`}
                     />
                     <Box sx={{ ml: 2, display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                       {question.options && question.options.map((option, optIndex) => (
@@ -96,7 +103,7 @@ const PreviewModal = ({ open, handleClose, formId }) => {
         )}
         
         <Button onClick={handleClose} sx={{ mt: 3 }} variant="outlined" color="error">
-          Fechar
+          {t('close')}
         </Button>
       </Box>
     </Modal>

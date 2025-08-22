@@ -1,5 +1,6 @@
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   CssBaseline,
@@ -16,39 +17,38 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 
 const drawerWidth = 120;
 
-const menuItems = [
-  {
-    text: 'Formulários',
-    icon: <DashboardIcon />,
-    path: '/admin/forms',
-  },
-  {
-    text: 'Empresas',
-    icon: <AddBoxIcon />,
-    path: '/admin/companies',
-  },
-  {
-    text: 'Relatórios',
-    icon: <BarChartIcon />,
-    path: '/admin/reports',
-  },
-  {
-    text: 'Usuários',
-    icon: <ManageAccountsIcon />,
-    path: '/admin/users',
-  }
-];
-
 const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open] = React.useState(true);
+  const { t } = useTranslation(); 
+
+  const menuItems = [
+    {
+      text: t("menu_forms"), 
+      icon: <DashboardIcon />,
+      path: '/admin/forms',
+    },
+    {
+      text: t("menu_companies"), 
+      icon: <AddBoxIcon />,
+      path: '/admin/companies',
+    },
+    {
+      text: t("menu_reports"), 
+      icon: <BarChartIcon />,
+      path: '/admin/reports',
+    },
+    {
+      text: t("menu_users"), 
+      icon: <ManageAccountsIcon />,
+      path: '/admin/users',
+    }
+  ];
 
   return (
     <Box sx={{ display: 'flex' }}>
       <CssBaseline />
-
-      {/* Sidebar */}
       <Drawer
         variant="permanent"
         open={open}
@@ -106,8 +106,6 @@ const AdminLayout = () => {
           })}
         </List>
       </Drawer>
-
-      {/* Conteúdo */}
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Outlet />
       </Box>

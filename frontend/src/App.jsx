@@ -1,5 +1,7 @@
 
 import React from 'react';
+import "./i18n";
+
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
@@ -13,6 +15,8 @@ import CompanyForm from './components/CompanyForm';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import UserManagementPage from './pages/UserManagementPage';
 import AccessDeniedPage from './pages/AccessDeniedPage'; 
+
+
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();

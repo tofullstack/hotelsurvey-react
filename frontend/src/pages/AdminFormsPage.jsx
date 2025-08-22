@@ -5,6 +5,10 @@ import { Link } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import Modal from '@mui/material/Modal';
 import PreviewModal from '../components/PreviewModal';
+// import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
+
+
 
 
 import {
@@ -34,6 +38,8 @@ import {
 } from '@mui/icons-material';
 
 const AdminFormsPage = () => {
+  const { t, i18n } = useTranslation(); //tradução
+
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
   const [openModal, setOpenModal] = useState(false);
@@ -142,18 +148,30 @@ const AdminFormsPage = () => {
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h6">Formulários de Pesquisa</Typography>
-        <Button
-          component={Link}
-          to="/admin/forms/new"
-          variant="contained"
-          color="info"
-          size="small"
-          startIcon={<AddIcon />}
-        >
-          Novo Formulário
-        </Button>
+        <Typography variant="h6">{t("formsTitle")}</Typography>
+        <Stack direction="row" spacing={2}>
+          <Button
+            component={Link}
+            to="/admin/forms/new"
+            variant="contained"
+            color="info"
+            size="small"
+            startIcon={<AddIcon />}
+          >
+            {t("newForm")}
+          </Button>
+
+          {/* botão para mudar idioma */}
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={() => i18n.changeLanguage(i18n.language === "pt" ? "en" : "pt")}
+          >
+            {i18n.language === "pt" ? "EN" : "PT"}
+          </Button>
+        </Stack>
       </Box>
+
 
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
@@ -161,11 +179,11 @@ const AdminFormsPage = () => {
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Nome</TableCell>
-              <TableCell>Empresa</TableCell>
-              <TableCell>Idioma</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell align="right">Ações</TableCell>
+              <TableCell>{t("name")}</TableCell>
+              <TableCell>{t("company")}</TableCell>
+              <TableCell>{t("language")}</TableCell>
+              <TableCell>{t("status")}</TableCell>
+              <TableCell align="right">{t("actions")}</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -179,10 +197,11 @@ const AdminFormsPage = () => {
                   <TableCell>{form.language || 'pt-BR'}</TableCell>
                   <TableCell>
                     <Chip
-                      label={form.active ? 'Ativo' : 'Inativo'}
-                      color={form.active ? 'success' : 'default'}
+                      label={form.active ? t("active") : t("inactive")}
+                      color={form.active ? "success" : "default"}
                       variant="outlined"
                     />
+
                   </TableCell>
                   <TableCell align="right" >
                     <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
@@ -195,7 +214,7 @@ const AdminFormsPage = () => {
                         }
                         startIcon={form.active ? <PauseIcon /> : <PlayArrowIcon />}
                       >
-                        {form.active ? 'Desativar' : 'Ativar'}
+                      {form.active ? t('deactivate') : t('activate')}
                       </Button>
 
                       <Button
@@ -205,7 +224,7 @@ const AdminFormsPage = () => {
                         variant="outlined"
                         startIcon={<EditIcon />}
                       >
-                        Editar
+                        {t("edit")}
                       </Button>
                       <Button
                         onClick={() => handleOpenPreviewModal(form.id)}
@@ -214,7 +233,7 @@ const AdminFormsPage = () => {
                         color="secondary"
                         startIcon={<VisibilityIcon />}
                       >
-                        Preview
+                        {t("preview")}
                       </Button>
 
                       <Button
@@ -227,7 +246,7 @@ const AdminFormsPage = () => {
                         }}
                         startIcon={<QrCodeIcon />}
                       >
-                        QR Code
+                        {t("qrcode")}
                       </Button>
 
                     </Stack>
@@ -267,17 +286,20 @@ const AdminFormsPage = () => {
           }}
         >
           <Typography id="modal-deactivate-title" variant="h6" mb={2}>
-            Desativar formulário
           </Typography>
           <Typography mb={3}>
-            Tem certeza que deseja desativar <strong>{selectedFormForDeactivate?.name}</strong>?
+            <Trans
+              i18nKey="deactivateConfirmation"
+              values={{ formName: selectedFormForDeactivate?.name }}
+              components={{ strong: <strong /> }}
+            />
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center">
             <Button onClick={handleCloseDeactivateModal} variant="outlined">
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button onClick={confirmDeactivate} variant="contained" color="error">
-              Confirmar
+              {t("confirm")}
             </Button>
           </Stack>
         </Box>
@@ -305,13 +327,18 @@ const AdminFormsPage = () => {
           }}
         >
           <Typography id="modal-qr-title" variant="h6" mb={2}>
-            QR Code para: {selectedFormForQr?.name}
+            <Trans
+              i18nKey="qrcodeDescription"
+              values={{ formName: selectedFormForQr?.name }}
+              components={{ strong: <strong /> }}
+            />
           </Typography>
+
           {selectedFormForQr && (
             <QRCodeDisplay url={getSurveyFrontendUrl(selectedFormForQr)} size={256} />
           )}
           <Button onClick={handleCloseModal} sx={{ mt: 2 }} variant="outlined" color="error">
-            Fechar
+            {t("close")}
           </Button>
         </Box>
       </Modal>

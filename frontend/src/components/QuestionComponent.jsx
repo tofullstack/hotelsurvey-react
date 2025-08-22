@@ -1,4 +1,3 @@
-// QuestionComponent.js
 import React from "react";
 import {
   FormControl,

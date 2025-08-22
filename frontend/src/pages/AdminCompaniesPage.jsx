@@ -21,10 +21,14 @@ import {
 import Pagination from '@mui/material/Pagination';
 import { Edit, Delete, Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
+import { t } from 'i18next';
 
 const AdminCompaniesPage = () => {
   const navigate = useNavigate();
 
+  
+  
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchName, setSearchName] = useState("");
@@ -98,7 +102,7 @@ const AdminCompaniesPage = () => {
     <Container maxWidth="xl" sx={{ my: 4 }}>
       <Box mb={4}>
         <Typography variant="h6" component="h1" gutterBottom >
-          Gerenciar Empresas
+        {t("manageCompanies")}
         </Typography>
       </Box>
 
