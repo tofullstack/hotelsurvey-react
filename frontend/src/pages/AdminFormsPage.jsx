@@ -39,6 +39,8 @@ import {
 
 const AdminFormsPage = () => {
   const { t, i18n } = useTranslation(); //tradução
+  const languages = ["pt", "en", "es"];
+
 
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
@@ -165,9 +167,13 @@ const AdminFormsPage = () => {
           <Button
             variant="outlined"
             size="small"
-            onClick={() => i18n.changeLanguage(i18n.language === "pt" ? "en" : "pt")}
+            onClick={() => {
+              const currentIndex = languages.indexOf(i18n.language);
+              const nextIndex = (currentIndex + 1) % languages.length;
+              i18n.changeLanguage(languages[nextIndex]);
+            }}
           >
-            {i18n.language === "pt" ? "EN" : "PT"}
+            {i18n.language.toUpperCase()}
           </Button>
         </Stack>
       </Box>
@@ -214,7 +220,7 @@ const AdminFormsPage = () => {
                         }
                         startIcon={form.active ? <PauseIcon /> : <PlayArrowIcon />}
                       >
-                      {form.active ? t('deactivate') : t('activate')}
+                        {form.active ? t('deactivate') : t('activate')}
                       </Button>
 
                       <Button

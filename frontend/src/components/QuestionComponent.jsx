@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   FormControl,
   FormLabel,
@@ -29,46 +30,51 @@ const StyledRating = styled(Rating)(({ theme }) => ({
   },
 }));
 
-const customIcons = {
+
+const customIcons = (t) => ({
   1: {
     icon: <SentimentVeryDissatisfiedIcon sx={{ fontSize: 60 }} color="error" />,
-    label: "Muito insatisfeito",
+    label: t("sentiment_1"),
   },
   2: {
     icon: <SentimentDissatisfiedIcon sx={{ fontSize: 60 }} color="error" />,
-    label: "Insatisfeito",
+    label: t("sentiment_2"),
   },
   3: {
     icon: <SentimentSatisfiedIcon sx={{ fontSize: 60 }} color="warning" />,
-    label: "Neutro",
+    label: t("sentiment_3"),
   },
   4: {
     icon: <SentimentSatisfiedAltIcon sx={{ fontSize: 60 }} color="success" />,
-    label: "Satisfeito",
+    label: t("sentiment_4"),
   },
   5: {
     icon: <SentimentVerySatisfiedIcon sx={{ fontSize: 60 }} color="success" />,
-    label: "Muito satisfeito",
+    label: t("sentiment_5"),
   },
-};
+});
 
 function IconContainer(props) {
   const { value, ...other } = props;
-  return <span {...other}>{customIcons[value].icon}</span>;
+  return <span {...other}>{props.icons[value].icon}</span>;
 }
+
 IconContainer.propTypes = {
   value: PropTypes.number.isRequired,
+  icons: PropTypes.object.isRequired,
 };
 
 // === componente principal ===
 const QuestionComponent = ({ question, value, onChange, isSectionDenied, language }) => {
+  const { t } = useTranslation();
+
   if (isSectionDenied) {
     return null;
   }
 
   const questionType = question.type;
 
-  let translatedLabel = "Questão sem label";
+  let translatedLabel = t("noLabelQuestion"); 
 
   const translatedLabelObject = question.translations?.find(
     (t) => t.language === language
@@ -80,6 +86,8 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
   }
 
   const options = question.options || [];
+  
+  const currentCustomIcons = customIcons(t); 
 
   const renderInput = () => {
     switch (questionType?.toUpperCase()) {
@@ -92,7 +100,7 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
             variant="outlined"
             value={value || ""}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="Digite sua resposta..."
+            placeholder={t("placeholder_text")}
           />
         );
       case "CHOICE":
@@ -105,7 +113,7 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
             displayEmpty
           >
             <MenuItem value="" disabled>
-              Selecione uma opção
+              {t("placeholder_select")}
             </MenuItem>
             {options.map((opt, index) => (
               <MenuItem key={index} value={opt}>
@@ -123,8 +131,8 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
             onChange={(e) => onChange(e.target.value)}
             sx={{ gap: 4 }}
           >
-            <FormControlLabel value="true" control={<Radio />} label="Sim" />
-            <FormControlLabel value="false" control={<Radio />} label="Não" />
+            <FormControlLabel value="true" control={<Radio />} label={t("yes")} />
+            <FormControlLabel value="false" control={<Radio />} label={t("no")} />
           </RadioGroup>
         );
       case "SCALE": {
@@ -139,8 +147,8 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
               name={`rating-question-${question.id}`}
               value={Number(value) || 0}
               onChange={(event, newValue) => handleRatingChange(event, newValue)}
-              IconContainerComponent={IconContainer}
-              getLabelText={(val) => customIcons[val].label}
+              IconContainerComponent={(props) => <IconContainer {...props} icons={currentCustomIcons} />}
+              getLabelText={(val) => currentCustomIcons[val].label}
               highlightSelectedOnly
               max={maxRating}
               sx={{ fontSize: 60 }}
@@ -151,7 +159,7 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
       default:
         return (
           <Typography variant="body2" color="text.secondary">
-            Tipo de pergunta desconhecido.
+            {t("unknownQuestionType")}
           </Typography>
         );
     }

@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import QuestionComponent from "./QuestionComponent";
 import PublicSurveyService from "../services/public.survey.service";
-import ConditionalTriggerService from '../services/conditional.trigger.service'; // novo import
-//import { useParams } from "react-router-dom";
-import Rating from '@mui/material/Rating';
-
+import ConditionalTriggerService from '../services/conditional.trigger.service';
+import { useTranslation } from 'react-i18next';
 
 import {
   Container,
@@ -17,8 +15,6 @@ import {
   CardContent,
   Alert,
   CircularProgress,
-  FormControlLabel,
-  Checkbox,
   FormControl,
   InputLabel,
   Select,
@@ -47,8 +43,10 @@ const style = {
 
 const SurveyForm = ({ formId, language }) => {
 
+  const { t } = useTranslation();
+
   const [surveyStructure, setSurveyStructure] = useState(null);
-  const [allAnswers, setAllAnswers] = useState({}); // estado unificado para todas as respostas
+  const [allAnswers, setAllAnswers] = useState({});
   const [guestIdentifier, setGuestIdentifier] = useState("");
   const [freeTextFeedback, setFreeTextFeedback] = useState("");
   const [loading, setLoading] = useState(true);
@@ -67,20 +65,20 @@ const SurveyForm = ({ formId, language }) => {
   const [selectedLanguage, setSelectedLanguage] = useState(language);
 
   const languageNames = {
-    'pt-BR': 'Português',
-    'en-US': 'English',
-    'de-DE': 'Deutsch',
-    'es-ES': 'Español',
-    'fr-FR': 'Français',
-    'it-IT': 'Italiano',
-    'ja-JP': '日本語 (Japonês)',
-    'ko-KR': '한국어 (Coreano)',
-    'zh-CN': '中文 (Chinês)',
+    'pt-BR': t('ptLanguageName'),
+    'en-US': t('enLanguageName'),
+    'de-DE': t('deLanguageName'),
+    'es-ES': t('esLanguageName'),
+    'fr-FR': t('frLanguageName'),
+    'it-IT': t('itLanguageName'),
+    'ja-JP': t('jaLanguageName'),
+    'ko-KR': t('koLanguageName'),
+    'zh-CN': t('zhLanguageName'),
   };
 
   useEffect(() => {
     if (!formId || !selectedLanguage) {
-      setError("URL do formulário inválida. Faltando id do formulário ou idioma.");
+      setError(t("invalidFormUrl"));
       setLoading(false);
       return;
     }
@@ -89,7 +87,6 @@ const SurveyForm = ({ formId, language }) => {
       try {
         const data = await PublicSurveyService.getSurveyQuestions(formId, selectedLanguage);
         setSurveyStructure(data);
-
 
         if (data && data.questions) {
           const dynamicLanguages = new Set();
@@ -121,12 +118,12 @@ const SurveyForm = ({ formId, language }) => {
         }
         setLoading(false);
       } catch (err) {
-        setError("Falha ao carregar a pesquisa. Por favor, tente novamente mais tarde.");
+        setError(t("failToLoadSurvey"));
         setLoading(false);
       }
     };
     fetchSurvey();
-  }, [formId, selectedLanguage]);
+  }, [formId, selectedLanguage, t]);
 
   const handleAnswerChange = async (questionId, value) => {
     const currentQuestion = surveyStructure.questions.find(q => q.id === questionId);
@@ -156,7 +153,6 @@ const SurveyForm = ({ formId, language }) => {
           conditionalForms[0].questions.forEach(q => initialConditionalAnswers[q.id] = "");
           setConditionalAnswers(initialConditionalAnswers);
         } else {
-
           setTimeout(() => {
             if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
               setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -219,48 +215,39 @@ const SurveyForm = ({ formId, language }) => {
     }, 500);
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormPhase('submitting');
+    setError(null);
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-  setFormPhase('submitting');
-  setError(null);
+    const submittedAnswers = Object.keys(allAnswers).map(questionId => {
+      const answerData = allAnswers[questionId];
 
-  const submittedAnswers = Object.keys(allAnswers).map(questionId => {
-    const answerData = allAnswers[questionId];
+      return {
+        questionId: parseInt(questionId),
+        surveySectionId: answerData.surveySectionId || surveyStructure.id,
+        answerValue: answerData.value || "",
+        didNotUseService: false,
+      };
+    });
 
-    return {
-      questionId: parseInt(questionId),
-      surveySectionId: answerData.surveySectionId || surveyStructure.id,
-      answerValue: answerData.value || "",
-      didNotUseService: false,
+    const surveyData = {
+      companyId: surveyStructure.companyId,
+      formId: formId,
+      guestIdentifier: guestIdentifier,
+      freeTextFeedback: freeTextFeedback,
+      answers: submittedAnswers,
+      serieEmpresa: surveyStructure.serieEmpresa,
     };
-  });
 
-
-
-  const surveyData = {
-    companyId: surveyStructure.companyId,
-    formId: formId,
-    guestIdentifier: guestIdentifier,
-    freeTextFeedback: freeTextFeedback,
-    answers: submittedAnswers,
-    serieEmpresa: surveyStructure.serieEmpresa,
-  };
-
-  try {
-    await PublicSurveyService.submitSurveyResponse(surveyData);
-    setFormPhase("success");
-    setTimeout(() => window.location.reload(), 5000);
-  } catch (err) {
-    setFormPhase("error");
-    setError("Falha ao enviar a pesquisa.");
-  }
-};
-
-
-  const handleLanguageChange = (e) => {
-    const newLanguage = e.target.value;
-    setSelectedLanguage(newLanguage);
+    try {
+      await PublicSurveyService.submitSurveyResponse(surveyData);
+      setFormPhase("success");
+      setTimeout(() => window.location.reload(), 5000);
+    } catch (err) {
+      setFormPhase("error");
+      setError(t("failToSubmitSurvey"));
+    }
   };
 
   const renderConditionalForm = () => {
@@ -285,7 +272,7 @@ const handleSubmit = async (e) => {
           color="primary"
           sx={{ mt: 2 }}
         >
-          Enviar e Continuar
+          {t("sendAndContinue")}
         </Button>
       </Box>
     );
@@ -293,13 +280,14 @@ const handleSubmit = async (e) => {
 
   const renderContent = () => {
     if (loading) {
-      return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /><Typography variant="body1" sx={{ ml: 2 }}>carregando pesquisa...</Typography></Box>;
+      return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /><Typography variant="body1" sx={{ ml: 2 }}>{t("loadingSurvey")}</Typography></Box>;
     }
     if (error && formPhase !== "success") {
-      return <Alert severity="error">erro: {error}</Alert>;
+      return <Alert severity="error">{t("error")}: {error}</Alert>;
     }
     if (formPhase === "success") {
-      return (<Box sx={{ textAlign: "center", mt: 5, py: 10 }}><Typography variant="h3" gutterBottom sx={{ color: 'success.main' }}>🎉 Obrigado!</Typography><Typography variant="h5">Sua resposta foi enviada com sucesso.</Typography></Box>);
+      return (<Box sx={{ textAlign: "center", mt: 5, py: 10 }}><Typography variant="h3" gutterBottom sx={{ color: 'success.main' }}>{t("thanks")}</Typography>
+      <Typography variant="h5">{t("thanksMessage")}</Typography></Box>);
     }
 
     if (formPhase === 'questions') {
@@ -329,11 +317,11 @@ const handleSubmit = async (e) => {
     if (formPhase === 'details') {
       return (
         <Box component="form" onSubmit={handleSubmit}>
-          <Typography variant="h5" sx={{ mb: 2 }}>Detalhes adicionais</Typography>
-          <TextField fullWidth margin="normal" label="Seu indicador(Opcional):" value={guestIdentifier} onChange={(e) => setGuestIdentifier(e.target.value)} InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} />
-          <TextField fullWidth multiline rows={4} margin="normal" label="Feedback Adicional (Opcional):" inputProps={{ maxLength: 500 }} value={freeTextFeedback} onChange={(e) => setFreeTextFeedback(e.target.value)} placeholder="Compartilhe quaisquer pensamentos ou sugestões aqui..." InputProps={{ startAdornment: (<ChatIcon sx={{ mr: 1, color: "action.active" }} />) }} />
-          <Typography variant="caption" color="text.secondary" sx={{ display: "flex", textAlign: "right" }}>{freeTextFeedback.length}/500 Caracteres</Typography>
-          <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>Enviar Feedback</Button>
+          <Typography variant="h5" sx={{ mb: 2 }}>{t("additionalDetails")}</Typography>
+          <TextField fullWidth margin="normal" label={t("indicator")} value={guestIdentifier} onChange={(e) => setGuestIdentifier(e.target.value)} InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} />
+          <TextField fullWidth multiline rows={4} margin="normal" label={t("additionalFeedback")} inputProps={{ maxLength: 500 }} value={freeTextFeedback} onChange={(e) => setFreeTextFeedback(e.target.value)} placeholder={t("additionalDetails_Placeholder")} InputProps={{ startAdornment: (<ChatIcon sx={{ mr: 1, color: "action.active" }} />) }} />
+          <Typography variant="caption" color="text.secondary" sx={{ display: "flex", textAlign: "right" }}>{freeTextFeedback.length}/500 {t("characters")}</Typography>
+          <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>{t("submitFeedback")}</Button>
         </Box>
       );
     }
@@ -346,11 +334,11 @@ const handleSubmit = async (e) => {
       <Grid container justifyContent="flex-end" sx={{ mb: 2 }}>
         <Grid item xs={12} sm={4}>
           <FormControl fullWidth size="small">
-            <InputLabel id="language-select-label">Idioma</InputLabel>
+            <InputLabel id="language-select-label">{t("language")}</InputLabel>
             <Select
               labelId="language-select-label"
               value={selectedLanguage}
-              label="Idioma"
+              label={t("language")}
               onChange={(e) => setSelectedLanguage(e.target.value)}
             >
               {availableLanguages.map((langCode) => (
