@@ -43,7 +43,6 @@ const FormService = {
       throw error;
     }
   },
-
   deactivateForm: async (formId) => {
     try {
       const response = await api.delete(`${FORM_ADMIN_BASE_URL}/${formId}`);

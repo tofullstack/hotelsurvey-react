@@ -7,6 +7,7 @@ const ReportService = {
     try {
       const params = new URLSearchParams();
       if (filters.companyId) params.append('companyId', filters.companyId);
+      if (filters.serieEmpresa) params.append('serieEmpresa', filters.serieEmpresa);
       if (filters.language) params.append('language', filters.language);
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
@@ -25,6 +26,28 @@ const ReportService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching survey response by ID:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+
+  downloadReport: async (filters = {}, format) => {
+    try {
+      const params = new URLSearchParams();
+      params.append('format', format);
+      if (filters.companyId) params.append('companyId', filters.companyId);
+      if (filters.serieEmpresa) params.append('serieEmpresa', filters.serieEmpresa);
+      if (filters.language) params.append('language', filters.language);
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+
+      const response = await api.get(`${REPORTS_BASE_URL}/download`, { 
+        params,
+        responseType: 'blob' // Isso é fundamental para lidar com arquivos binários
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error('Error downloading report:', error.response?.data || error.message);
       throw error;
     }
   }

@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import Modal from '@mui/material/Modal';
 import PreviewModal from '../components/PreviewModal';
-// import { useTranslation } from "react-i18next";
 import { useTranslation, Trans } from "react-i18next";
 
 

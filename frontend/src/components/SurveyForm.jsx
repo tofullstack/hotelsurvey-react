@@ -236,6 +236,7 @@ const SurveyForm = ({ formId, language }) => {
       formId: formId,
       guestIdentifier: guestIdentifier,
       freeTextFeedback: freeTextFeedback,
+      language: selectedLanguage, // <-- Linha adicionada
       answers: submittedAnswers,
       serieEmpresa: surveyStructure.serieEmpresa,
     };
