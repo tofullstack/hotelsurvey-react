@@ -15,27 +15,39 @@ import {
   Paper,
   IconButton,
   CircularProgress,
-  TablePagination,
-  Grid
+  Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Breadcrumbs,
+  Link,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel
 } from "@mui/material";
-import Pagination from '@mui/material/Pagination';
-import { Edit, Delete, Search as SearchIcon, Add as AddIcon } from "@mui/icons-material";
+import Pagination from "@mui/material/Pagination";
+import { Edit, Search as SearchIcon, Add as AddIcon, Delete } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from 'react-i18next';
-import { t } from 'i18next';
+import { useTranslation } from "react-i18next";
 
 const AdminCompaniesPage = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation(); 
 
-  
-  
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchName, setSearchName] = useState("");
+  const [status, setStatus] = useState("active");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalElements, setTotalElements] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+
+  // modal de confirmação
+  const [openConfirm, setOpenConfirm] = useState(false);
+  const [companyToToggle, setCompanyToToggle] = useState(null);
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -44,21 +56,14 @@ const AdminCompaniesPage = () => {
         page,
         size: rowsPerPage,
         name: searchName,
+        status,
       });
 
-      if (Array.isArray(response)) {
-        setCompanies(response);
-        setTotalElements(response.length);
-        setTotalPages(Math.ceil(response.length / rowsPerPage));
-      } else {
-        setCompanies(response?.content || []);
-        setTotalElements(response?.totalElements || 0);
-        setTotalPages(response?.totalPages || 0);
-      }
+      setCompanies(response.content || []);
+      setTotalPages(response.totalPages || 0);
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);
       setCompanies([]);
-      setTotalElements(0);
       setTotalPages(0);
     } finally {
       setLoading(false);
@@ -67,141 +72,189 @@ const AdminCompaniesPage = () => {
 
   useEffect(() => {
     fetchCompanies();
-  }, [page, rowsPerPage, searchName]);
+  }, [page, rowsPerPage, searchName, status]);
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage - 1);
+  const handleChangePage = (event, newPage) => setPage(newPage - 1);
+  const handleSearch = () => setPage(0);
+
+  const handleEdit = (id) => navigate(`/admin/companies/edit/${id}`);
+
+  const handleToggleStatusClick = (company) => {
+    setCompanyToToggle(company);
+    setOpenConfirm(true);
   };
 
-  const handleChangeRowsPerPage = (event) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
-
-
-  const handleSearch = () => {
-    setPage(0);
-  };
-
-  const handleEdit = (id) => {
-    navigate(`/admin/companies/edit/${id}`);
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Tem certeza que deseja deletar esta empresa?")) {
+  const handleConfirmToggle = async () => {
+    if (companyToToggle) {
       try {
-        await CompanyService.deleteCompany(id);
+        await CompanyService.updateCompanyStatus(companyToToggle.id, !companyToToggle.active);
         fetchCompanies();
       } catch (error) {
-        console.error("Erro ao deletar empresa:", error);
+        console.error("Erro ao atualizar status da empresa:", error);
+      } finally {
+        setOpenConfirm(false);
+        setCompanyToToggle(null);
       }
     }
   };
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-      <Box mb={4}>
-        <Typography variant="h6" component="h1" gutterBottom >
-        {t("manageCompanies")}
-        </Typography>
-      </Box>
+      {/* Breadcrumbs */}
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link underline="hover" color="inherit" href="/admin">
+          {t("breadcrumb_home")}
+        </Link>
+        <Typography color="text.primary">{t("breadcrumb_companies")}</Typography>
+      </Breadcrumbs>
 
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12}>
-          <Paper elevation={3} sx={{ p: 3 }}>
-            <Box display="flex" alignItems="center" gap={2}>
-              <TextField
-                label="Buscar por nome"
-                value={searchName}
-                onChange={(e) => setSearchName(e.target.value)}
-                variant="outlined"
-                size="small"
-                sx={{ minWidth: 500 }}
-              />
-              <Button
-                variant="contained"
-                onClick={handleSearch}
-                startIcon={<SearchIcon />}
-                size="small"
+      <Paper sx={{ p: 3 }}>
+        <Box mb={2}>
+          <Typography variant="h6" component="h1">
+            {t("manageCompanies")}
+          </Typography>
+        </Box>
+
+        {/* Filtros */}
+        <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
+          <Grid item>
+            <TextField
+              label={t("menu_company_search_placeholder")}
+              value={searchName}
+              onChange={(e) => setSearchName(e.target.value)}
+              variant="outlined"
+              size="small"
+            />
+          </Grid>
+          <Grid item>
+            <FormControl size="small">
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={status}
+                label="Status"
+                onChange={(e) => {
+                  setStatus(e.target.value);
+                  setPage(0);
+                }}
               >
-                Buscar
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                onClick={() => navigate("/admin/companies/new")}
-                startIcon={<AddIcon />}
-                size="small"
-              >
-                Nova Empresa
-              </Button>
-            </Box>
-          </Paper>
+                <MenuItem value="active">{t("menu_company_active")}</MenuItem>
+                <MenuItem value="inactive">{t("menu_company_inactive")}</MenuItem>
+                <MenuItem value="all">{t("menu_company_all")}</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              startIcon={<SearchIcon />}
+              onClick={handleSearch}
+              size="small"
+            >
+              {t("menu_company_search")}
+            </Button>
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<AddIcon />}
+              size="small"
+              onClick={() => navigate("/admin/companies/new")}
+            >
+             { t("menu_company_create_new")}
+            </Button>
+          </Grid>
         </Grid>
 
-        <Grid item xs={12}>
-          {loading ? (
-            <Box display="flex" justifyContent="center" my={5}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <Paper elevation={3}>
-              <TableContainer>
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      {/* <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell> */}
-                      <TableCell sx={{ fontWeight: 'bold' }}>Nome</TableCell>
-                      <TableCell sx={{ fontWeight: 'bold' }}>Série</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>Ações</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {companies.length > 0 ? (
-                      companies.map((company) => (
-                        <TableRow key={company.id} hover>
-                          {/* <TableCell>{company.id}</TableCell> */}
-                          <TableCell>{company.name}</TableCell>
-                          <TableCell>{company.serieEmpresa}</TableCell>
-                          <TableCell align="right">
-                            <IconButton
-                              color="primary"
-                              onClick={() => handleEdit(company.id)}
-                            >
-                              <Edit />
-                            </IconButton>
-                            <IconButton
-                              color="secondary"
-                              onClick={() => handleDelete(company.id)}
-                            >
-                              <Delete />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={4} align="center">
-                          Nenhuma empresa encontrada
+        {loading ? (
+          <Box display="flex" justifyContent="center" my={5}>
+            <CircularProgress />
+          </Box>
+        ) : (
+          <Paper elevation={3}>
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: "bold" }}>{t("menu_company_name")}</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>{t("menu_company_series")}</TableCell>
+                    <TableCell sx={{ fontWeight: "bold" }}>{t("menu_company_status")}</TableCell>
+                    <TableCell align="right" sx={{ fontWeight: "bold" }}>
+                    {t("menu_company_actions")}
+                    </TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {companies.length > 0 ? (
+                    companies.map((company) => (
+                      <TableRow key={company.id} hover>
+                        <TableCell>{company.name}</TableCell>
+                        <TableCell>{company.serieEmpresa}</TableCell>
+                        <TableCell>{company.active ? t("menu_company_active") : t("menu_company_inactive")}</TableCell>
+                        <TableCell align="right">
+                          <IconButton
+                            color="primary"
+                            onClick={() => handleEdit(company.id)}
+                          >
+                            <Edit />
+                          </IconButton>
+                          <IconButton
+                            color={company.active ? "error" : "primary"}
+                            onClick={() => handleToggleStatusClick(company)}
+                          >
+                            <Delete />
+                          </IconButton>
                         </TableCell>
                       </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center">
+                        {t("menu_company_no_companies")}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        )}
 
+        <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+          <Pagination
+            count={totalPages}
+            page={page + 1}
+            onChange={handleChangePage}
+            color="primary"
+          />
+        </Box>
+      </Paper>
 
-            </Paper>
-          )}
-          <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
-            <Pagination
-              count={totalPages}
-              page={page + 1}
-              onChange={handleChangePage}
-              color="primary"
-            />
-          </Box></Grid>
-      </Grid>
+      {/* Modal de confirmação */}
+      <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
+        <DialogTitle>
+          {companyToToggle?.active ? t("menu_company_toggle_title_modal_deactivate"): t("menu_company_toggle_title_modal_activate")}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {companyToToggle?.active
+              ? t("menu_company_toggle_active_modal")
+              : t("menu_company_toggle_deactive_modal")}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpenConfirm(false)} color="primary">
+            {t("cancel")}
+          </Button>
+          <Button 
+            onClick={handleConfirmToggle} 
+            color={companyToToggle?.active ? "error" : "primary"} 
+            autoFocus
+          >
+            {t("confirm")}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

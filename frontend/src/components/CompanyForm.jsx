@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CompanyService from '../services/company.service';
+import { useTranslation, Trans } from "react-i18next";
+
 import {
-  Container, Typography, TextField, Button, Box, Alert
+  Container, Typography, TextField, Button, Box, Alert, Paper, Breadcrumbs, Link
 } from '@mui/material';
 
 const CompanyForm = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
+  const { t, i18n } = useTranslation();
 
   const [company, setCompany] = useState({ name: '', serieEmpresa: '' });
   const [error, setError] = useState(null);
@@ -29,7 +32,7 @@ const CompanyForm = () => {
       } else {
         await CompanyService.createCompany(company);
       }
-      navigate('/admin/companies');
+      navigate('/admin/companies'); // volta pra listagem depois de salvar
     } catch (err) {
       setError(err.response?.data?.message || 'Erro ao salvar empresa');
     }
@@ -37,39 +40,64 @@ const CompanyForm = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4 }}>
-      <Typography variant="h6" mb={2}>
-        {isEdit ? 'Editar Empresa' : 'Nova Empresa'}
-      </Typography>
+      {/* Breadcrumbs */}
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link underline="hover" color="inherit" href="/admin">
+          {t("breadcrumb_home")}
+        </Link>
+        <Link underline="hover" color="inherit" href="/admin/companies">
+          {t("breadcrumb_companies")}
+        </Link>
+        <Typography color="text.primary">
+          {isEdit ? t("menu_company_form_edit_title") : t("menu_company_form_create_title")}
+        </Typography>
+      </Breadcrumbs>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      <Paper sx={{ p: 3 }}>
+        <Typography variant="h6" mb={2}>
+          {isEdit ? t("menu_company_form_edit_title") : t("menu_company_form_create_title")}
+        </Typography>
 
-      <Box component="form" onSubmit={handleSubmit}>
-        <TextField
-          fullWidth
-          label="Nome da Empresa"
-          variant="outlined"
-          size='small'
-          value={company.name}
-          onChange={(e) => setCompany({ ...company, name: e.target.value })}
-          required
-          sx={{ mb: 2 }}
-        />
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-        <TextField
-          fullWidth
-          label="Série da Empresa"
-          variant="outlined"
-          size='small'
-          value={company.serieEmpresa}
-          onChange={(e) => setCompany({ ...company, serieEmpresa: e.target.value })}
-          required
-          sx={{ mb: 2 }}
-        />
+        <Box component="form" onSubmit={handleSubmit}>
+          <TextField
+            fullWidth
+            label={t("menu_company_form_name_placeholder")}
+            variant="outlined"
+            size='small'
+            value={company.name}
+            onChange={(e) => setCompany({ ...company, name: e.target.value })}
+            required
+            sx={{ mb: 2 }}
+          />
 
-        <Button type="submit" variant="contained" color="primary" size='small'>
-          Salvar
-        </Button>
-      </Box>
+          <TextField
+            fullWidth
+            label={t("menu_company_form_series_placeholder")}
+            variant="outlined"
+            size='small'
+            value={company.serieEmpresa}
+            onChange={(e) => setCompany({ ...company, serieEmpresa: e.target.value })}
+            required
+            sx={{ mb: 2 }}
+          />
+
+          <Box sx={{ display: 'flex', gap: 2 }}>
+            <Button type="submit" variant="contained" color="primary" size='small'>
+             {t("save")}
+            </Button>
+            <Button
+              variant="outlined"
+              color="secondary"
+              size='small'
+              onClick={() => navigate('/admin/companies')}
+            >
+              {t("cancel")}
+            </Button>
+          </Box>
+        </Box>
+      </Paper>
     </Container>
   );
 };

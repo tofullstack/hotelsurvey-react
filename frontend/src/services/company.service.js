@@ -58,7 +58,19 @@ const CompanyService = {
             throw error;
             
         }
+    },
+
+    updateCompanyStatus: async (id, active) => {
+        try {
+            const res = await api.put(`${COMPANY_ADMIN_BASE_URL}/${id}/status?active=${active}`);
+            return res.data;
+        } catch (error) {
+            console.error('Error updating company status.', error.response?.data || error.message);
+            throw error;
+        }
     }
+    
+    
 };
 
 export default CompanyService;
