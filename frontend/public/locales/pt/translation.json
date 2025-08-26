@@ -82,6 +82,7 @@
     "userId": "ID",
     "userLogin": "Login",
     "userProfile": "Perfil",
+    "userPassword": "Senha",
     "userCompany": "Empresa",
     "userStatus": "Status",
     "editUser": "Editar Usuário",
@@ -177,5 +178,15 @@
     "menu_company_form_edit_title":"Editar Empresa",
     "menu_company_form_create_title":"Criar Empresa",
     "menu_company_form_name_placeholder":"Nome da Empresa",
-    "menu_company_form_series_placeholder":"Série da Empresa"
+    "menu_company_form_series_placeholder":"Série da Empresa",
+    "english": "Inglês",
+    "portuguese": "Português",
+    "spanish": "Espanhol",
+    "french": "Francês",
+    "german": "Alemão",
+    "italian": "Italiano",
+    "japanese": "Japonês",
+    "korean": "Coreano",
+    "chinese": "Chinês",
+    "none": "Nenhum"
 }

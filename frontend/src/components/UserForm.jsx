@@ -1,6 +1,6 @@
-// src/components/UserForm.js
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Button,
   TextField,
@@ -15,6 +15,7 @@ import {
 import CompanyService from '../services/company.service'; 
 
 const UserForm = ({ user, onSave, onCancel }) => {
+  const { t } = useTranslation();
   const [login, setLogin] = useState(user?.login || '');
   const [password, setPassword] = useState('');
   const [profile, setProfile] = useState(user?.profile || 'USUARIO');
@@ -37,7 +38,7 @@ const UserForm = ({ user, onSave, onCancel }) => {
         }
 
       } catch (err) {
-        setErrorCompanies('Falha ao carregar as empresas.');
+        setErrorCompanies(t('failToLoadCompanies'));
       } finally {
         setLoadingCompanies(false);
       }
@@ -54,26 +55,28 @@ const UserForm = ({ user, onSave, onCancel }) => {
   return (
     <Box component="form" onSubmit={handleSubmit} sx={{ '& .MuiTextField-root': { my: 1, width: '100%' } }}>
       <TextField
-        label="Login"
+        label={t('userLogin')}
         value={login}
         onChange={(e) => setLogin(e.target.value)}
         required
         disabled={!!user}
+        size="small"
       />
       {!user && (
         <TextField
-          label="Senha"
+          label={t('userPassword')}
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          size="small"
         />
       )}
-      <FormControl fullWidth sx={{ my: 1 }}>
-        <InputLabel>Perfil</InputLabel>
+      <FormControl fullWidth sx={{ my: 1 }} size="small">
+        <InputLabel>{t('userProfile')}</InputLabel>
         <Select
           value={profile}
-          label="Perfil"
+          label={t('userProfile')}
           onChange={(e) => setProfile(e.target.value)}
         >
           <MenuItem value="ADMIN">ADMIN</MenuItem>
@@ -90,11 +93,11 @@ const UserForm = ({ user, onSave, onCancel }) => {
           {errorCompanies}
         </Typography>
       ) : (
-        <FormControl fullWidth sx={{ my: 1 }}>
-          <InputLabel>Empresa</InputLabel>
+        <FormControl fullWidth sx={{ my: 1 }} size="small">
+          <InputLabel>{t('userCompany')}</InputLabel>
           <Select
             value={companyId}
-            label="Empresa"
+            label={t('userCompany')}
             onChange={(e) => setCompanyId(e.target.value)}
             required
           >
@@ -108,11 +111,11 @@ const UserForm = ({ user, onSave, onCancel }) => {
       )}
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
-        <Button onClick={onCancel} variant="outlined">
-          Cancelar
+        <Button onClick={onCancel} variant="outlined" size="small">
+          {t('cancel')}
         </Button>
-        <Button type="submit" variant="contained">
-          Salvar
+        <Button type="submit" variant="contained" size="small">
+          {t('save')}
         </Button>
       </Box>
     </Box>

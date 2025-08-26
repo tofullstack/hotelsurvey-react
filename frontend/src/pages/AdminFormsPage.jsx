@@ -208,7 +208,7 @@ const AdminFormsPage = () => {
                       <Button
                         size="small"
                         variant="outlined"
-                        color={form.active ? 'warning' : 'success'}
+                        color={form.active ? 'error' : 'success'}
                         onClick={() =>
                           form.active ? handleOpenDeactivateModal(form) : handleActivate(form.id)
                         }
@@ -225,15 +225,7 @@ const AdminFormsPage = () => {
                       >
                         {t("edit")}
                       </Button>
-                      <Button
-                        onClick={() => handleOpenPreviewModal(form.id)}
-                        size="small"
-                        variant="outlined"
-                        color="secondary"
-                        startIcon={<VisibilityIcon />}
-                      >
-                        {t("preview")}
-                      </Button>
+
                       <Button
                         size="small"
                         variant="contained"
@@ -245,6 +237,14 @@ const AdminFormsPage = () => {
                         startIcon={<QrCodeIcon />}
                       >
                         {t("qrcode")}
+                      </Button>                      <Button
+                        onClick={() => handleOpenPreviewModal(form.id)}
+                        size="small"
+                        variant="text"
+                        color="secondary"
+                        startIcon={<VisibilityIcon />}
+                      >
+                        {t("preview")}
                       </Button>
                     </Stack>
                   </TableCell>

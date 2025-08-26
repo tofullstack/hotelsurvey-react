@@ -4,9 +4,15 @@ import api from './api';
 const USER_BASE_URL = '/auth/users'; 
 
 const UserService = {
-  getUsers: async () => {
+  getUsers: async (pagination) => {
     try {
-      const response = await api.get(USER_BASE_URL);
+      const params = {};
+      if (pagination) {
+        params.page = pagination.page; 
+        params.size = pagination.rowsPerPage;
+      }
+      const response = await api.get(USER_BASE_URL, { params });
+      
       return response.data;
     } catch (error) {
       console.error('Get users error:', error.response?.data || error.message);

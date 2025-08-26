@@ -100,7 +100,6 @@ const AdminCompaniesPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-      {/* Breadcrumbs */}
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
         <Link underline="hover"  sx={{ color: 'text.primary' }} href="/admin">
           {t("breadcrumb_home")}
@@ -230,7 +229,6 @@ const AdminCompaniesPage = () => {
         </Box>
       </Paper>
 
-      {/* Modal de confirmação */}
       <Dialog open={openConfirm} onClose={() => setOpenConfirm(false)}>
         <DialogTitle>
           {companyToToggle?.active ? t("menu_company_toggle_title_modal_deactivate"): t("menu_company_toggle_title_modal_activate")}

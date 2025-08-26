@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReportService from '../services/report.service';
 import {
@@ -22,20 +23,37 @@ import {
   List,
   ListItem,
   ListItemText,
-  Stack
+  Stack,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Pagination,
+  Breadcrumbs, 
+  Link,  
 } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 
+const languages = [
+    { code: 'en-US', i18nKey: 'english' },
+    { code: 'pt-BR', i18nKey: 'portuguese' },
+    { code: 'es-ES', i18nKey: 'spanish' },
+    { code: 'fr-FR', i18nKey: 'french' },
+    { code: 'de-DE', i18nKey: 'german' },
+    { code: 'it-IT', i18nKey: 'italian' },
+    { code: 'ja-JP', i18nKey: 'japanese' },
+    { code: 'ko-KR', i18nKey: 'korean' },
+    { code: 'zh-CN', i18nKey: 'chinese' },
+];
+
 const ReportPage = () => {
   const { t } = useTranslation();
 
-  const [reportData, setReportData] = useState({
-    totalResponses: 0,
-    averageRating: null,
-    responses: []
-  });
+  const [responses, setResponses] = useState([]);
+  const [totalResponses, setTotalResponses] = useState(0);
+  const [averageRating, setAverageRating] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
@@ -46,22 +64,65 @@ const ReportPage = () => {
   });
   const [open, setOpen] = useState({});
 
-  const fetchResponses = async () => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [totalPages, setTotalPages] = useState(0);
+
+  const fetchPaginatedResponses = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await ReportService.getSurveyResponses(filters);
-      setReportData(data);
+      const data = await ReportService.getSurveyResponses({
+        ...filters,
+        page,
+        size: rowsPerPage,
+      });
+
+      if (data && Array.isArray(data.content)) {
+        setResponses(data.content);
+        setTotalPages(data.totalPages);
+      } else {
+        setResponses([]);
+        setTotalPages(0);
+        console.error("API response for paginated reports is not a valid object:", data);
+      }
     } catch (err) {
       setError(err.response?.data?.message || t('failToLoadReports'));
+      console.error(err);
+      setResponses([]);
+      setTotalPages(0);
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchSummaryData = async () => {
+    try {
+      const summaryData = await ReportService.getReportSummary(filters);
+      if (summaryData) {
+        setTotalResponses(summaryData.totalResponses);
+        setAverageRating(summaryData.averageRating);
+      } else {
+        setTotalResponses(0);
+        setAverageRating(null);
+      }
+    } catch (err) {
+      console.error("Error fetching summary data:", err);
+    }
+  };
+
+
   useEffect(() => {
-    fetchResponses();
-  }, []);
+    fetchPaginatedResponses();
+  }, [page, rowsPerPage, filters]);
+
+  useEffect(() => {
+    fetchSummaryData();
+  }, [filters]);
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage - 1);
+  };
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
@@ -69,7 +130,7 @@ const ReportPage = () => {
   };
 
   const applyFilters = () => {
-    fetchResponses();
+    setPage(0);
   };
 
   const handleDownload = async (format) => {
@@ -102,6 +163,14 @@ const ReportPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
+      {/* Breadcrumbs adicionado aqui */}
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link underline="hover" color="inherit" href="/admin">
+          {t("breadcrumb_home")}
+        </Link>
+        <Typography color="text.primary">{t("reportsTitle")}</Typography>
+      </Breadcrumbs>
+
       <Typography variant="h6" component="h1" align="center" mb={4}>
         {t('reportsTitle')}
       </Typography>
@@ -118,15 +187,30 @@ const ReportPage = () => {
               onChange={handleFilterChange}
             />
           </Grid>
+          
           <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              fullWidth
-              label={t('language')}
-              name="language"
-              value={filters.language}
-              onChange={handleFilterChange}
-            />
+            <FormControl fullWidth>
+              <InputLabel id="language-select-label">{t('language')}</InputLabel>
+              <Select
+                labelId="language-select-label"
+                id="language-select"
+                value={filters.language}
+                label={t('language')}
+                onChange={handleFilterChange}
+                name="language"
+              >
+                <MenuItem value="">
+                  <em>{t('none')}</em>
+                </MenuItem>
+                {languages.map((lang) => (
+                  <MenuItem key={lang.code} value={lang.code}>
+                    {t(lang.i18nKey)}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
           </Grid>
+
           <Grid item xs={12} sm={6} md={3}>
             <TextField
               fullWidth
@@ -156,30 +240,27 @@ const ReportPage = () => {
           </Grid>
         </Grid>
         
-        {/* --- Métricas Agregadas Movidas para dentro deste Paper --- */}
         <Box sx={{ mt: 4, pt: 2, borderTop: '1px solid #e0e0e0' }}>
             <Typography variant="h6" mb={2}>{t('reportSummary')}</Typography>
             <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                     <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
                         <Typography variant="body1">
-                            {t('totalResponses')}: <strong>{reportData.totalResponses}</strong>
+                            {t('totalResponses')}: <strong>{totalResponses}</strong>
                         </Typography>
                     </Paper>
                 </Grid>
-                {reportData.averageRating !== null && (
+                {averageRating !== null && (
                     <Grid item xs={12} sm={6}>
                         <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
                             <Typography variant="body1">
-                                {t('averageRating')}: <strong>{reportData.averageRating.toFixed(2)}</strong>
+                                {t('averageRating')}: <strong>{averageRating.toFixed(2)}</strong>
                             </Typography>
                         </Paper>
                     </Grid>
                 )}
             </Grid>
         </Box>
-        {/* -------------------------------------------------------- */}
-
       </Paper>
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
@@ -193,11 +274,7 @@ const ReportPage = () => {
         </Stack>
       </Box>
       
-      {reportData.responses.length === 0 ? (
-        <Typography variant="body1" align="center" color="text.secondary">
-          {t('noResponsesFound')}
-        </Typography>
-      ) : (
+      {Array.isArray(responses) && responses.length > 0 ? (
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -212,7 +289,7 @@ const ReportPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {reportData.responses.map(response => (
+              {responses.map(response => (
                 <React.Fragment key={response.id}>
                   <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
                     <TableCell>
@@ -262,7 +339,20 @@ const ReportPage = () => {
             </TableBody>
           </Table>
         </TableContainer>
+      ) : (
+        <Typography variant="body1" align="center" color="text.secondary">
+          {t('noResponsesFound')}
+        </Typography>
       )}
+
+      <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+        <Pagination
+          count={totalPages}
+          page={page + 1}
+          onChange={handleChangePage}
+          color="primary"
+        />
+      </Box>
     </Container>
   );
 };
