@@ -102,7 +102,7 @@ const AdminCompaniesPage = () => {
     <Container maxWidth="xl" sx={{ my: 4 }}>
       {/* Breadcrumbs */}
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-        <Link underline="hover" color="inherit" href="/admin">
+        <Link underline="hover"  sx={{ color: 'text.primary' }} href="/admin">
           {t("breadcrumb_home")}
         </Link>
         <Typography color="text.primary">{t("breadcrumb_companies")}</Typography>

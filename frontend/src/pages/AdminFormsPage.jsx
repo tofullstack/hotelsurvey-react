@@ -1,15 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import FormService from '../services/form.service';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import Modal from '@mui/material/Modal';
 import PreviewModal from '../components/PreviewModal';
 import { useTranslation, Trans } from "react-i18next";
-
-
-
-
 import {
   Container,
   Box,
@@ -25,7 +21,8 @@ import {
   TableRow,
   Paper,
   Chip,
-  Stack
+  Stack,
+  Breadcrumbs,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -37,9 +34,9 @@ import {
 } from '@mui/icons-material';
 
 const AdminFormsPage = () => {
-  const { t, i18n } = useTranslation(); //tradução
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const languages = ["pt", "en", "es"];
-
 
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
@@ -61,7 +58,6 @@ const AdminFormsPage = () => {
 
   const [openDeactivateModal, setOpenDeactivateModal] = useState(false);
   const [selectedFormForDeactivate, setSelectedFormForDeactivate] = useState(null);
-
 
   const handleOpenDeactivateModal = (form) => {
     setSelectedFormForDeactivate(form);
@@ -87,7 +83,6 @@ const AdminFormsPage = () => {
     }
   };
 
-
   const handleOpenPreviewModal = (formId) => {
     setSelectedFormId(formId);
     setOpenPreviewModal(true);
@@ -101,9 +96,6 @@ const AdminFormsPage = () => {
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
-
-
-
 
   useEffect(() => {
     const fetchForms = async () => {
@@ -128,7 +120,6 @@ const AdminFormsPage = () => {
     return `http://localhost:5173/survey/${form.id}/${languageCode}`;
   };
 
-
   const handleActivate = async (formId) => {
     try {
       await FormService.activateForm(formId);
@@ -148,6 +139,13 @@ const AdminFormsPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link underline="hover" sx={{ color: 'text.primary' }} href="/admin">
+          {t("breadcrumb_home")}
+        </Link>
+        <Typography color="text.primary">{t("formsTitle")}</Typography>
+      </Breadcrumbs>
+
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h6">{t("formsTitle")}</Typography>
         <Stack direction="row" spacing={2}>
@@ -177,7 +175,6 @@ const AdminFormsPage = () => {
         </Stack>
       </Box>
 
-
       {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       <TableContainer component={Paper}>
@@ -196,7 +193,6 @@ const AdminFormsPage = () => {
               .slice((currentPage - 1) * formsPerPage, currentPage * formsPerPage)
               .map((form) => (
                 <TableRow key={form.id} hover>
-
                   <TableCell>{form.name}</TableCell>
                   <TableCell>{form.companyName}</TableCell>
                   <TableCell>{form.language || 'pt-BR'}</TableCell>
@@ -206,7 +202,6 @@ const AdminFormsPage = () => {
                       color={form.active ? "success" : "default"}
                       variant="outlined"
                     />
-
                   </TableCell>
                   <TableCell align="right" >
                     <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
@@ -221,7 +216,6 @@ const AdminFormsPage = () => {
                       >
                         {form.active ? t('deactivate') : t('activate')}
                       </Button>
-
                       <Button
                         component={Link}
                         to={`/admin/forms/edit/${form.id}`}
@@ -240,7 +234,6 @@ const AdminFormsPage = () => {
                       >
                         {t("preview")}
                       </Button>
-
                       <Button
                         size="small"
                         variant="contained"
@@ -253,7 +246,6 @@ const AdminFormsPage = () => {
                       >
                         {t("qrcode")}
                       </Button>
-
                     </Stack>
                   </TableCell>
                 </TableRow>
@@ -271,6 +263,7 @@ const AdminFormsPage = () => {
         />
       </Box>
 
+      {/* Modals e outros componentes */}
       <Modal
         open={openDeactivateModal}
         onClose={handleCloseDeactivateModal}
@@ -291,6 +284,7 @@ const AdminFormsPage = () => {
           }}
         >
           <Typography id="modal-deactivate-title" variant="h6" mb={2}>
+            {t("deactivateConfirmationTitle")}
           </Typography>
           <Typography mb={3}>
             <Trans
@@ -309,7 +303,6 @@ const AdminFormsPage = () => {
           </Stack>
         </Box>
       </Modal>
-
 
       <Modal
         open={openModal}
@@ -338,7 +331,6 @@ const AdminFormsPage = () => {
               components={{ strong: <strong /> }}
             />
           </Typography>
-
           {selectedFormForQr && (
             <QRCodeDisplay url={getSurveyFrontendUrl(selectedFormForQr)} size={256} />
           )}
@@ -348,19 +340,13 @@ const AdminFormsPage = () => {
         </Box>
       </Modal>
 
-
       <PreviewModal
         open={openPreviewModal}
         handleClose={handleClosePreviewModal}
         formId={selectedFormId}
       />
-
     </Container>
-
-
   );
-
-
 };
 
 export default AdminFormsPage;

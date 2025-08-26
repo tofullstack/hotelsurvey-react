@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FormService from "../services/form.service";
 import { useTranslation, Trans } from "react-i18next";
-
 import {
   Container,
   Box,
@@ -24,6 +23,8 @@ import {
   Grid,
   Paper,
   Divider,
+  Breadcrumbs, 
+  Link, 
 } from "@mui/material";
 import {
   Delete as DeleteIcon,
@@ -79,7 +80,6 @@ const FormEditorPage = () => {
   const [companies, setCompanies] = useState([]);
   const [conditionalForms, setConditionalForms] = useState([]);
   const { t } = useTranslation();
-
 
   useEffect(() => {
     const fetchCompanies = async () => {
@@ -162,7 +162,6 @@ const FormEditorPage = () => {
   const handleQuestionChange = (questionIndex, e) => {
     const { name, value, type, checked } = e.target;
     const newQuestions = [...formData.questions];
-
     if (name === "type" && value === "SCALE") {
       newQuestions[questionIndex] = {
         ...newQuestions[questionIndex],
@@ -362,6 +361,19 @@ const FormEditorPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
+      {/* Breadcrumbs Adicionados */}
+      <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
+        <Link underline="hover" color="inherit" href="/admin">
+          {t("breadcrumb_home")}
+        </Link>
+        <Link underline="hover" color="inherit" href="/admin/forms">
+          {t("formsTitle")}
+        </Link>
+        <Typography color="text.primary">
+          {isNewForm ? t("newForm") : t("editForm", { formName: formData.name })}
+        </Typography>
+      </Breadcrumbs>
+
       <Typography
         variant="h4"
         component="h1"
