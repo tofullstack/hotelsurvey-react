@@ -21,14 +21,18 @@ import {
   Breadcrumbs, 
   Link, 
   Stack,
-  Pagination, // Componente de paginação
+  Pagination,
+  Chip, 
+  IconButton,
+  Menu,
+  MenuItem
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 import UserService from '../services/user.service';
 import UserForm from '../components/UserForm';
-import { PlayArrow as PlayArrowIcon } from '@mui/icons-material';
 
 const UserManagementPage = () => {
   const { t } = useTranslation();
@@ -42,10 +46,25 @@ const UserManagementPage = () => {
   const [openDeactivateModal, setOpenDeactivateModal] = useState(false);
   const [selectedUserForDeactivate, setSelectedUserForDeactivate] = useState(null);
 
-  // Estados de paginação (agora com o mesmo padrão do seu código de empresas)
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+
+  // State e handlers para o menu de ações de cada linha
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleMenuClick = (event, userId) => {
+    setAnchorEl(event.currentTarget);
+    setCurrentUserId(userId);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setCurrentUserId(null);
+  };
+  
+
+  const currentUser = users.find(user => user.id === currentUserId);
 
   const handleOpenDeactivateModal = (user) => {
     setSelectedUserForDeactivate(user);
@@ -72,21 +91,18 @@ const UserManagementPage = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      // Passamos a página e o tamanho para a sua API, seguindo o seu padrão
       const data = await UserService.getUsers({
         page,
         size: rowsPerPage,
       });
 
-      // Verificamos a estrutura da resposta do backend
       if (data && Array.isArray(data.content)) {
         setUsers(data.content);
         setTotalPages(data.totalPages);
       } else {
-        // Fallback em caso de retorno inesperado, como no seu código
         if (Array.isArray(data)) {
            setUsers(data);
-           setTotalPages(1); // Se a API retorna um array simples, há apenas uma página
+           setTotalPages(1);
         } else {
            setUsers([]);
            setTotalPages(0);
@@ -104,11 +120,9 @@ const UserManagementPage = () => {
   };
 
   const handleChangePage = (event, newPage) => {
-    // Ajusta a página para começar em 0
     setPage(newPage - 1);
   };
 
-  // O useEffect agora depende da página e do tamanho da página
   useEffect(() => {
     fetchUsers();
   }, [page, rowsPerPage]);
@@ -182,6 +196,7 @@ const UserManagementPage = () => {
           </Typography>
           <Button
             variant="contained"
+            color='info'
             startIcon={<AddIcon />}
             onClick={() => handleOpenModal()}
             size="small"
@@ -194,7 +209,7 @@ const UserManagementPage = () => {
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>{t('userId')}</TableCell>
+                {/* <TableCell sx={{ fontWeight: 'bold' }}>{t('userId')}</TableCell> */}
                 <TableCell sx={{ fontWeight: 'bold' }}>{t('userLogin')}</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>{t('userProfile')}</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>{t('userCompany')}</TableCell>
@@ -206,29 +221,28 @@ const UserManagementPage = () => {
               {Array.isArray(users) && users.length > 0 ? (
                 users.map((user) => (
                   <TableRow key={user.id} hover>
-                    <TableCell>{user.id}</TableCell>
+                    {/* <TableCell>{user.id}</TableCell> */}
                     <TableCell>{user.login}</TableCell>
                     <TableCell>{user.profile}</TableCell>
                     <TableCell>{user.companyName || t('notApplicable')}</TableCell>
                     <TableCell>
-                      <span style={{ color: user.active ? 'green' : 'red' }}>
-                        {user.active ? t('active') : t('inactive')}
-                      </span>
+                      <Chip size='small'
+                        label={user.active ? t('active') : t('inactive')}
+                        color={user.active ? 'success' : 'default'}
+                        variant="outlined"/>
                     </TableCell>
                     <TableCell align="right">
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
-                        {user.active ? (
-                          <Button onClick={() => handleOpenDeactivateModal(user)} variant="outlined" color="error" size="small" startIcon={<DeleteIcon />}>
-                            {t('deactivate')}
-                          </Button>
-                        ) : (
-                          <Button onClick={() => handleActivate(user.id)} variant="outlined" color="success" size="small" startIcon={<PlayArrowIcon />}>
-                            {t('activate')}
-                          </Button>
-                        )}
-                        <Button onClick={() => handleOpenModal(user)} variant="outlined" size="small" startIcon={<EditIcon />}>
-                        {t('edit')}
-                      </Button>
+                        <IconButton
+                          aria-label="more"
+                          aria-controls={open ? 'long-menu' : undefined}
+                          aria-expanded={open ? 'true' : undefined}
+                          aria-haspopup="true"
+                          onClick={(e) => handleMenuClick(e, user.id)}
+                          size="small"
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
                       </Stack>
                     </TableCell>
                   </TableRow>
@@ -246,6 +260,42 @@ const UserManagementPage = () => {
           </Table>
         </TableContainer>
         
+        <Menu
+          id="long-menu"
+          MenuListProps={{
+            'aria-labelledby': 'long-button',
+          }}
+          anchorEl={anchorEl}
+          open={open}
+          onClose={handleMenuClose}
+        >
+          {currentUser && (
+            [
+              <MenuItem key="edit" onClick={() => {
+                handleOpenModal(currentUser);
+                handleMenuClose();
+              }}>
+                <EditIcon fontSize="small" sx={{ mr: 1 }} /> {t('edit')}
+              </MenuItem>,
+              currentUser.active ? (
+                <MenuItem key="deactivate" onClick={() => {
+                  handleOpenDeactivateModal(currentUser);
+                  handleMenuClose();
+                }}>
+                  <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> {t('deactivate')}
+                </MenuItem>
+              ) : (
+                <MenuItem key="activate" onClick={() => {
+                  handleActivate(currentUser.id);
+                  handleMenuClose();
+                }}>
+                  {t('activate')}
+                </MenuItem>
+              )
+            ]
+          )}
+        </Menu>
+
         <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
           <Pagination
             count={totalPages}

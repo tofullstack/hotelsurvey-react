@@ -257,7 +257,7 @@ const SurveyForm = ({ formId, language }) => {
     }
     return (
       <Box component="form" onSubmit={handleConditionalSubmit} sx={{ textAlign: 'center' }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>{conditionalForm.name}</Typography>
+        {/* <Typography variant="h5" sx={{ mb: 2 }}>{conditionalForm.name}</Typography> */}
         {conditionalForm.questions.map(q => (
           <QuestionComponent
             key={q.id}
@@ -320,9 +320,9 @@ const SurveyForm = ({ formId, language }) => {
         <Box component="form" onSubmit={handleSubmit}>
           <Typography variant="h5" sx={{ mb: 2 }}>{t("additionalDetails")}</Typography>
           <TextField fullWidth margin="normal" label={t("indicator")} value={guestIdentifier} onChange={(e) => setGuestIdentifier(e.target.value)} InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} />
-          <TextField fullWidth multiline rows={4} margin="normal" label={t("additionalFeedback")} inputProps={{ maxLength: 500 }} value={freeTextFeedback} onChange={(e) => setFreeTextFeedback(e.target.value)} placeholder={t("additionalDetails_Placeholder")} InputProps={{ startAdornment: (<ChatIcon sx={{ mr: 1, color: "action.active" }} />) }} />
+          <TextField fullWidth multiline rows={4} margin="normal" label={t("additionalDetails")} inputProps={{ maxLength: 500 }} value={freeTextFeedback} onChange={(e) => setFreeTextFeedback(e.target.value)} placeholder={t("additionalDetailsPlaceholder")} InputProps={{ startAdornment: (<ChatIcon sx={{ mr: 1, color: "action.active" }} />) }} />
           <Typography variant="caption" color="text.secondary" sx={{ display: "flex", textAlign: "right" }}>{freeTextFeedback.length}/500 {t("characters")}</Typography>
-          <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>{t("submitFeedback")}</Button>
+          <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>{t("submit")}</Button>
         </Box>
       );
     }

@@ -14,6 +14,8 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import TableViewIcon from '@mui/icons-material/TableView';
+import BusinessIcon from '@mui/icons-material/Business';
 
 const drawerWidth = 120;
 
@@ -26,12 +28,12 @@ const AdminLayout = () => {
   const menuItems = [
     {
       text: t("menu_forms"), 
-      icon: <DashboardIcon />,
+      icon: <TableViewIcon />,
       path: '/admin/forms',
     },
     {
       text: t("menu_companies"), 
-      icon: <AddBoxIcon />,
+      icon: <BusinessIcon />,
       path: '/admin/companies',
     },
     {

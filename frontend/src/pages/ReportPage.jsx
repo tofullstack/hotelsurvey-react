@@ -234,7 +234,7 @@ const ReportPage = () => {
             />
           </Grid>
           <Grid item xs={12} sx={{ textAlign: 'right' }}>
-            <Button variant="contained" onClick={applyFilters}>
+            <Button size='small' color='info' variant="contained" onClick={applyFilters}>
               {t('applyFilters')}
             </Button>
           </Grid>
@@ -265,10 +265,10 @@ const ReportPage = () => {
 
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <Stack direction="row" spacing={1}>
-          <Button variant="outlined" startIcon={<FileDownloadIcon />} onClick={() => handleDownload('pdf')}>
+          <Button size='small' variant="outlined" startIcon={<FileDownloadIcon />} onClick={() => handleDownload('pdf')}>
             {t('downloadPDF')}
           </Button>
-          <Button variant="outlined" startIcon={<FileDownloadIcon />} onClick={() => handleDownload('xml')}>
+          <Button size='small' variant="outlined" startIcon={<FileDownloadIcon />} onClick={() => handleDownload('xml')}>
             {t('downloadXML')}
           </Button>
         </Stack>

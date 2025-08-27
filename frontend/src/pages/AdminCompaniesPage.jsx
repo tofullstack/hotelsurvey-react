@@ -26,10 +26,12 @@ import {
   Select,
   MenuItem,
   FormControl,
-  InputLabel
+  InputLabel,
+  Chip,
+  Menu
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { Edit, Search as SearchIcon, Add as AddIcon, Delete } from "@mui/icons-material";
+import { Edit, Search as SearchIcon, Add as AddIcon, Delete, MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
@@ -48,6 +50,21 @@ const AdminCompaniesPage = () => {
   // modal de confirmação
   const [openConfirm, setOpenConfirm] = useState(false);
   const [companyToToggle, setCompanyToToggle] = useState(null);
+
+  // State e handlers para o menu de ações de cada linha
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentCompanyId, setCurrentCompanyId] = useState(null);
+  const openMenu = Boolean(anchorEl);
+  const handleMenuClick = (event, companyId) => {
+    setAnchorEl(event.currentTarget);
+    setCurrentCompanyId(companyId);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setCurrentCompanyId(null);
+  };
+
+  const currentCompany = companies.find(company => company.id === currentCompanyId);
 
   const fetchCompanies = async () => {
     setLoading(true);
@@ -114,7 +131,6 @@ const AdminCompaniesPage = () => {
           </Typography>
         </Box>
 
-        {/* Filtros */}
         <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
           <Grid item>
             <TextField
@@ -144,10 +160,11 @@ const AdminCompaniesPage = () => {
           </Grid>
           <Grid item>
             <Button
-              variant="contained"
+              variant="outlined"
               startIcon={<SearchIcon />}
               onClick={handleSearch}
               size="small"
+              color="info"
             >
               {t("menu_company_search")}
             </Button>
@@ -155,7 +172,7 @@ const AdminCompaniesPage = () => {
           <Grid item>
             <Button
               variant="contained"
-              color="primary"
+              color="info"
               startIcon={<AddIcon />}
               size="small"
               onClick={() => navigate("/admin/companies/new")}
@@ -189,19 +206,23 @@ const AdminCompaniesPage = () => {
                       <TableRow key={company.id} hover>
                         <TableCell>{company.name}</TableCell>
                         <TableCell>{company.serieEmpresa}</TableCell>
-                        <TableCell>{company.active ? t("menu_company_active") : t("menu_company_inactive")}</TableCell>
+                        <TableCell>
+                          <Chip size='small'
+                            label={company.active ? t("menu_company_active") : t("menu_company_inactive")}
+                            color={company.active ? "success" : "default"}
+                            variant="outlined"
+                          />
+                        </TableCell>
                         <TableCell align="right">
                           <IconButton
-                            color="primary"
-                            onClick={() => handleEdit(company.id)}
+                            aria-label="more"
+                            aria-controls={openMenu ? 'long-menu' : undefined}
+                            aria-expanded={openMenu ? 'true' : undefined}
+                            aria-haspopup="true"
+                            onClick={(e) => handleMenuClick(e, company.id)}
+                            size="small"
                           >
-                            <Edit />
-                          </IconButton>
-                          <IconButton
-                            color={company.active ? "error" : "primary"}
-                            onClick={() => handleToggleStatusClick(company)}
-                          >
-                            <Delete />
+                            <MoreVertIcon />
                           </IconButton>
                         </TableCell>
                       </TableRow>
@@ -218,7 +239,30 @@ const AdminCompaniesPage = () => {
             </TableContainer>
           </Paper>
         )}
-
+        <Menu
+          id="company-actions-menu"
+          anchorEl={anchorEl}
+          open={openMenu}
+          onClose={handleMenuClose}
+        >
+          {currentCompany && (
+            [
+              <MenuItem key="edit" onClick={() => {
+                handleEdit(currentCompany.id);
+                handleMenuClose();
+              }}>
+                <Edit fontSize="small" sx={{ mr: 1 }} /> {t('edit')}
+              </MenuItem>,
+              <MenuItem key="toggle-status" onClick={() => {
+                handleToggleStatusClick(currentCompany);
+                handleMenuClose();
+              }}>
+                <Delete fontSize="small" sx={{ mr: 1 }} /> 
+                {currentCompany.active ? t('deactivate') : t('activate')}
+              </MenuItem>
+            ]
+          )}
+        </Menu>
         <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
           <Pagination
             count={totalPages}

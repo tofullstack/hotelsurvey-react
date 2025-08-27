@@ -30,7 +30,7 @@
     "save": "Save",
     "deactivateForm": "Deactivate form",
     "deactivateConfirmation": "Are you sure you want to deactivate <strong>{{formName}}</strong>?",
-    "qrcodeDescription": "QR Code for: <strong>{{formName}}</strong>:",
+    "qrcodeDescription": "QR Code for: <strong>{{formName}}</strong>",
     "scanQrCode": "Scan the QR Code to access the form",
     "qrcodeError": "Error generating QR Code. URL is required. Please try again.",
     "orclickLink": "Or click the link below to access the form: <a>{{url}}</a>",
@@ -109,8 +109,9 @@
     "thanks": "🎉 Thank you for your feedback!",
     "thanksMessage": "Your response has been recorded successfully. We appreciate your time and effort in helping us improve our services.",
     "additionalDetails": "Additional Details",
-    "additionalDetails_Placeholder": "Please provide any additional details or comments you may have.",
-    "indicators": "Indicator (Optional): ",
+    "additionalDetailsPlaceholder": "Please provide any additional details or comments you may have.",
+    "submit": "Submit",
+    "indicator": "Indicator (Optional): ",
     "failToSubmitSurvey": "Failed to submit survey.",
     "placeholder_text": "Type your answer...",
     "placeholder_select": "Select an option",
@@ -189,7 +190,19 @@
     "japanese": "Japanese",
     "korean": "Korean",
     "chinese": "Chinese",
-    "none": "None"
+    "none": "None",
+    "filterForms": "Filter Forms",
+    "allForms": "All",
+    "normalForms": "Normal",
+    "normalForm": "Normal",
+    "conditionalForm": "Conditional",
+    "conditionalForms": "Conditional",
+    "filterStatus": "Filter Status",
+    "allStatus": "All",
+    "activeStatus": "Active",
+    "inactiveStatus": "Inactive",
+    "filterType": "Filter Type",
+    "allTypes": "All"
 
 
     

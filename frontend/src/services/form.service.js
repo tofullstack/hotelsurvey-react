@@ -43,6 +43,7 @@ const FormService = {
       throw error;
     }
   },
+  
   deactivateForm: async (formId) => {
     try {
       const response = await api.delete(`${FORM_ADMIN_BASE_URL}/${formId}`);
@@ -89,6 +90,27 @@ const FormService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching conditional forms:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+  
+  searchForms: async (companyName, status, conditional) => {
+    try {
+      const params = new URLSearchParams();
+      if (companyName) {
+        params.append('companyName', companyName);
+      }
+      if (status && status !== 'todos') {
+        params.append('status', status);
+      }
+      if (conditional !== null) {
+        params.append('conditional', conditional);
+      }
+      
+      const response = await api.get(`${FORM_ADMIN_BASE_URL}/search`, { params });
+      return response.data;
+    } catch (error) {
+      console.error('Error searching forms:', error.response?.data || error.message);
       throw error;
     }
   }

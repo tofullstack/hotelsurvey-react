@@ -30,7 +30,7 @@
     "save": "Salvar",
     "deactivateForm": "Desativar formulário",
     "deactivateConfirmation": "Tem certeza que deseja desativar <strong>{{formName}}</strong>?",
-    "qrcodeDescription": "QR Code para: <strong>{{formName}}</strong>:",
+    "qrcodeDescription": "QR Code para: <strong>{{formName}}</strong>",
     "scanQrCode": "Escaneie o QR Code para acessar a pesquisa:",
     "qrcodeError": "Erro ao gerar QR Code. URL necessária. Por favor, tente novamente.",
     "orclickLink": "Ou clique no link abaixo para acessar o formulário: <a>{{url}}</a>",
@@ -111,6 +111,7 @@
     "thanksMessage": "Obrigado por responder a pesquisa! Sua opinião é muito importante para nós.",
     "additionalDetails": "Detalhes Adicionais",
     "additionalDetailsPlaceholder": "Por favor, forneça detalhes adicionais sobre sua experiência.",
+    "submit": "Enviar",
     "indicator": "Seu indicador (Opcional): ",
     "failToSubmitSurvey": "Falha ao enviar a pesquisa.",
     "placeholder_text": "Digite sua resposta...",
@@ -188,5 +189,18 @@
     "japanese": "Japonês",
     "korean": "Coreano",
     "chinese": "Chinês",
-    "none": "Nenhum"
+    "none": "Nenhum",
+    "filterForms": "Filtrar Formulários",
+    "allForms": "Todos",
+    "normalForms": "Normais",
+    "normalForm": "Normal",
+    "conditionalForm": "Condicional",
+    "conditionalForms": "Condicionais",
+    "filterStatus": "Filtrar Status",
+    "allStatus": "Todos",
+    "activeStatus": "Ativos",
+    "inactiveStatus": "Inativos",
+    "filterType": "Filtrar Tipo",
+    "allTypes": "Todos"
+
 }

@@ -6,6 +6,8 @@ import Pagination from '@mui/material/Pagination';
 import Modal from '@mui/material/Modal';
 import PreviewModal from '../components/PreviewModal';
 import { useTranslation, Trans } from "react-i18next";
+import DeleteIcon from '@mui/icons-material/Delete';
+
 import {
   Container,
   Box,
@@ -23,14 +25,19 @@ import {
   Chip,
   Stack,
   Breadcrumbs,
+  Select,
+  MenuItem,
+  InputLabel,
+  FormControl,
+  IconButton,
+  Menu
 } from '@mui/material';
 import {
   Add as AddIcon,
   Edit as EditIcon,
   Visibility as VisibilityIcon,
   QrCode as QrCodeIcon,
-  PlayArrow as PlayArrowIcon,
-  Pause as PauseIcon
+  MoreVert as MoreVertIcon
 } from '@mui/icons-material';
 
 const AdminFormsPage = () => {
@@ -41,6 +48,10 @@ const AdminFormsPage = () => {
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
   const [openModal, setOpenModal] = useState(false);
+  
+  // Dois estados para os filtros
+  const [statusFilter, setStatusFilter] = useState('todos');
+  const [typeFilter, setTypeFilter] = useState('todos');
 
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => {
@@ -96,20 +107,29 @@ const AdminFormsPage = () => {
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
+  
+  const fetchForms = async (currentStatusFilter, currentTypeFilter) => {
+    let conditionalFilter = null;
+    if (currentTypeFilter === 'normais') {
+        conditionalFilter = false;
+    } else if (currentTypeFilter === 'condicionais') {
+        conditionalFilter = true;
+    }
+
+    try {
+      const data = await FormService.searchForms(null, currentStatusFilter, conditionalFilter);
+      setForms(data);
+      setLoading(false);
+      setCurrentPage(1); // Resetar para a primeira página ao mudar o filtro
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to load forms.');
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchForms = async () => {
-      try {
-        const data = await FormService.getAllForms();
-        setForms(data);
-        setLoading(false);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Failed to load forms.');
-        setLoading(false);
-      }
-    };
-    fetchForms();
-  }, []);
+    fetchForms(statusFilter, typeFilter);
+  }, [statusFilter, typeFilter]);
 
   const handleGenerateQr = (form) => {
     setSelectedFormForQr(form);
@@ -128,6 +148,22 @@ const AdminFormsPage = () => {
       setError(err.response?.data?.message || 'Falha ao ativar formulário.');
     }
   };
+
+  // State e handlers para o menu de ações de cada linha
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [currentFormId, setCurrentFormId] = useState(null);
+  const open = Boolean(anchorEl);
+  const handleMenuClick = (event, formId) => {
+    setAnchorEl(event.currentTarget);
+    setCurrentFormId(formId);
+  };
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+    setCurrentFormId(null);
+  };
+
+  // Encontrar o formulário selecionado pelo menu
+  const currentForm = forms.find(form => form.id === currentFormId);
 
   if (loading) {
     return (
@@ -148,7 +184,37 @@ const AdminFormsPage = () => {
 
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h6">{t("formsTitle")}</Typography>
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} alignItems="center">
+          {/* Seletor de Status (Ativo/Inativo) */}
+          <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel>{t("filterStatus")}</InputLabel>
+            <Select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              label={t("filterStatus")}
+              size="small"
+            >
+              <MenuItem value="todos">{t("allStatus")}</MenuItem>
+              <MenuItem value="ativos">{t("activeStatus")}</MenuItem>
+              <MenuItem value="inativos">{t("inactiveStatus")}</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Seletor de Tipo (Normal/Condicional) */}
+          <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel>{t("filterType")}</InputLabel>
+            <Select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value)}
+              label={t("filterType")}
+              size="small"
+            >
+              <MenuItem value="todos">{t("allTypes")}</MenuItem>
+              <MenuItem value="normais">{t("normalForms")}</MenuItem>
+              <MenuItem value="condicionais">{t("conditionalForms")}</MenuItem>
+            </Select>
+          </FormControl>
+
           <Button
             component={Link}
             to="/admin/forms/new"
@@ -185,6 +251,7 @@ const AdminFormsPage = () => {
               <TableCell>{t("company")}</TableCell>
               <TableCell>{t("language")}</TableCell>
               <TableCell>{t("status")}</TableCell>
+              <TableCell>{t("type")}</TableCell>
               <TableCell align="right">{t("actions")}</TableCell>
             </TableRow>
           </TableHead>
@@ -197,55 +264,32 @@ const AdminFormsPage = () => {
                   <TableCell>{form.companyName}</TableCell>
                   <TableCell>{form.language || 'pt-BR'}</TableCell>
                   <TableCell>
-                    <Chip
+                    <Chip  size="small"
                       label={form.active ? t("active") : t("inactive")}
                       color={form.active ? "success" : "default"}
                       variant="outlined"
                     />
                   </TableCell>
+                  <TableCell>
+                    <Chip  size="small"
+                      label={form.conditional ? t("conditionalForm") : t("normalForm")}
+                      color={form.conditional ? "warning" : "default"}
+                      variant="text"
+                    />
+                  </TableCell>
                   <TableCell align="right" >
                     <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
-                      <Button
+                      <IconButton
+                        aria-label="more"
+                        id="long-button"
+                        aria-controls={open ? 'long-menu' : undefined}
+                        aria-expanded={open ? 'true' : undefined}
+                        aria-haspopup="true"
+                        onClick={(e) => handleMenuClick(e, form.id)}
                         size="small"
-                        variant="outlined"
-                        color={form.active ? 'error' : 'success'}
-                        onClick={() =>
-                          form.active ? handleOpenDeactivateModal(form) : handleActivate(form.id)
-                        }
-                        startIcon={form.active ? <PauseIcon /> : <PlayArrowIcon />}
                       >
-                        {form.active ? t('deactivate') : t('activate')}
-                      </Button>
-                      <Button
-                        component={Link}
-                        to={`/admin/forms/edit/${form.id}`}
-                        size="small"
-                        variant="outlined"
-                        startIcon={<EditIcon />}
-                      >
-                        {t("edit")}
-                      </Button>
-
-                      <Button
-                        size="small"
-                        variant="contained"
-                        color="info"
-                        onClick={() => {
-                          handleGenerateQr(form);
-                          handleOpenModal();
-                        }}
-                        startIcon={<QrCodeIcon />}
-                      >
-                        {t("qrcode")}
-                      </Button>                      <Button
-                        onClick={() => handleOpenPreviewModal(form.id)}
-                        size="small"
-                        variant="text"
-                        color="secondary"
-                        startIcon={<VisibilityIcon />}
-                      >
-                        {t("preview")}
-                      </Button>
+                        <MoreVertIcon />
+                      </IconButton>
                     </Stack>
                   </TableCell>
                 </TableRow>
@@ -253,6 +297,61 @@ const AdminFormsPage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      <Menu
+        id="long-menu"
+        MenuListProps={{
+          'aria-labelledby': 'long-button',
+        }}
+        anchorEl={anchorEl}
+        open={open}
+        onClose={handleMenuClose}
+        PaperProps={{
+          style: {
+            maxHeight: 48 * 4.5,
+            width: '20ch',
+          },
+        }}
+      >
+        {currentForm && (
+          [
+            <MenuItem key="edit" onClick={() => {
+              navigate(`/admin/forms/edit/${currentForm.id}`);
+              handleMenuClose();
+            }}>
+              <EditIcon fontSize="small" sx={{ mr: 1 }} /> {t("edit")}
+            </MenuItem>,
+            <MenuItem key="preview" onClick={() => {
+              handleOpenPreviewModal(currentForm.id);
+              handleMenuClose();
+            }}>
+              <VisibilityIcon fontSize="small" sx={{ mr: 1 }} /> {t("preview")}
+            </MenuItem>,
+            <MenuItem key="qr" onClick={() => {
+              handleGenerateQr(currentForm);
+              handleOpenModal();
+              handleMenuClose();
+            }}>
+              <QrCodeIcon fontSize="small" sx={{ mr: 1 }} /> {t("qrcode")}
+            </MenuItem>,
+            currentForm.active ? (
+              <MenuItem key="deactivate" onClick={() => {
+                handleOpenDeactivateModal(currentForm);
+                handleMenuClose();
+              }}>
+                <DeleteIcon fontSize="small" sx={{mr:1}}/> {t("deactivate")}
+              </MenuItem>
+            ) : (
+              <MenuItem key="activate" onClick={() => {
+                handleActivate(currentForm.id);
+                handleMenuClose();
+              }}>
+                {t("activate")}
+              </MenuItem>
+            ),
+          ]
+        )}
+      </Menu>
 
       <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center' }}>
         <Pagination
@@ -263,7 +362,6 @@ const AdminFormsPage = () => {
         />
       </Box>
 
-      {/* Modals e outros componentes */}
       <Modal
         open={openDeactivateModal}
         onClose={handleCloseDeactivateModal}
