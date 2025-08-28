@@ -1,5 +1,6 @@
 {
     "menu_forms": "Formularios",
+    "menu_dashboard": "Panel de Control",
     "menu_companies": "Empresas",
     "manageCompanies": "Gestionar Empresas",
     "menu_reports": "Informes",
@@ -93,6 +94,7 @@
     "failToLoadUsers": "No se pudieron cargar los usuarios. Por favor, inténtalo de nuevo.",
     "userUpdatedSuccessfully": "Usuario actualizado exitosamente.",
     "userCreatedSuccessfully": "Usuario creado exitosamente.",
+    "userDeactivatedSuccessfully": "Usuario desactivado exitosamente.",
     "failTosaveUser": "No se pudo guardar el usuario. Por favor, inténtalo de nuevo.",
     "failToActivateUser": "No se pudo activar el usuario.",
     "failToLoadPreview": "No se pudo cargar la vista previa. Por favor, inténtalo de nuevo.",
@@ -201,7 +203,9 @@
     "activeStatus": "Activo",
     "inactiveStatus": "Inactivo",
     "filterType": "Filtrar Tipo",
-    "allTypes": "Todos"
+    "allTypes": "Todos",
+    "menu_item_user_management_admin": "Administrador",
+    "menu_item_user_management_user": "Usuario Común"
 
 
 }

@@ -35,6 +35,8 @@ import {
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import { Link as RouterLink } from 'react-router-dom';
+
 
 const languages = [
     { code: 'en-US', i18nKey: 'english' },
@@ -163,10 +165,8 @@ const ReportPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-      {/* Breadcrumbs adicionado aqui */}
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-        <Link underline="hover" color="inherit" href="/admin">
-          {t("breadcrumb_home")}
+      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Typography color="text.primary">{t("reportsTitle")}</Typography>
       </Breadcrumbs>

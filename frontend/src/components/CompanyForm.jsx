@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CompanyService from '../services/company.service';
 import { useTranslation, Trans } from "react-i18next";
+import { Link as RouterLink } from 'react-router-dom';
+
 
 import {
   Container, Typography, TextField, Button, Box, Alert, Paper, Breadcrumbs, Link
@@ -40,10 +42,8 @@ const CompanyForm = () => {
 
   return (
     <Container maxWidth="xl" sx={{ mt: 4 }}>
-      {/* Breadcrumbs */}
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-        <Link underline="hover" color="inherit" href="/admin">
-          {t("breadcrumb_home")}
+      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Link underline="hover" color="inherit" href="/admin/companies">
           {t("breadcrumb_companies")}

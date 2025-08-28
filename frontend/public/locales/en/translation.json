@@ -1,5 +1,6 @@
 {
     "menu_forms": "Forms",
+    "menu_dashboard": "Dashboard",
     "menu_companies": "Companies",
     "manageCompanies": "Manage Companies",
     "menu_reports": "Reports",
@@ -93,6 +94,7 @@
     "failToLoadUsers": "Failed to load users. Please try again.",
     "userUpdatedSuccessfully":" User updated successfully.",
     "userCreatedSuccessfully": "User created successfully.",
+    "userDeactivatedSuccessfully": "User deactivated successfully.",
     "failTosaveUser": "Failed to save user. Please try again.",
     "failToActivateUser":"Failed to activate user.",
     "failToLoadPreview": "Failed to load preview. Please try again.",
@@ -202,7 +204,9 @@
     "activeStatus": "Active",
     "inactiveStatus": "Inactive",
     "filterType": "Filter Type",
-    "allTypes": "All"
+    "allTypes": "All",
+    "menu_item_user_management_admin": "Admin",
+    "menu_item_user_management_user": "Common User"
 
 
     

@@ -15,6 +15,7 @@ import CompanyForm from './components/CompanyForm';
 import ChangePasswordPage from './pages/ChangePasswordPage';
 import UserManagementPage from './pages/UserManagementPage';
 import AccessDeniedPage from './pages/AccessDeniedPage'; 
+import DashboardPage from './pages/DashboardPage';
 
 
 
@@ -47,7 +48,6 @@ const AdminRoute = ({ children }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // Redireciona para a página de acesso negado se o perfil não for ADMIN
   if (user.profile !== 'ADMIN') {
     return <Navigate to="/access-denied" replace />;
   }
@@ -70,14 +70,15 @@ function App() {
           <Route path="/access-denied" element={<AccessDeniedPage />} /> 
           
           <Route path="/admin" element={<PrivateRoute><AdminLayout /></PrivateRoute>}>
-            <Route index element={<AdminFormsPage />} />
+            <Route index element={<DashboardPage />} />
             <Route path="forms" element={<AdminFormsPage />} />
             <Route path="forms/new" element={<FormEditorPage />} />
             <Route path="forms/edit/:formId" element={<FormEditorPage />} />
-            <Route path="reports" element={<ReportPage />} />
+            <Route path="reports" element={<ReportPage />} /> 
             <Route path="companies" element={<AdminCompaniesPage />} />
             <Route path="companies/new" element={<CompanyForm />} />
             <Route path="companies/edit/:id" element={<CompanyForm />} />
+            <Route path="dashboard" element={<DashboardPage/>} />
             
             <Route path="users" element={<AdminRoute><UserManagementPage /></AdminRoute>} />
           </Route>

@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import FormService from '../services/form.service';
 import QRCodeDisplay from '../components/QRCodeDisplay';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom'; 
 import Pagination from '@mui/material/Pagination';
 import Modal from '@mui/material/Modal';
 import PreviewModal from '../components/PreviewModal';
 import { useTranslation, Trans } from "react-i18next";
 import DeleteIcon from '@mui/icons-material/Delete';
+
+
 
 import {
   Container,
@@ -25,6 +28,7 @@ import {
   Chip,
   Stack,
   Breadcrumbs,
+  Link,
   Select,
   MenuItem,
   InputLabel,
@@ -48,8 +52,7 @@ const AdminFormsPage = () => {
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
   const [openModal, setOpenModal] = useState(false);
-  
-  // Dois estados para os filtros
+
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
 
@@ -107,20 +110,20 @@ const AdminFormsPage = () => {
   const handlePageChange = (event, value) => {
     setCurrentPage(value);
   };
-  
+
   const fetchForms = async (currentStatusFilter, currentTypeFilter) => {
     let conditionalFilter = null;
     if (currentTypeFilter === 'normais') {
-        conditionalFilter = false;
+      conditionalFilter = false;
     } else if (currentTypeFilter === 'condicionais') {
-        conditionalFilter = true;
+      conditionalFilter = true;
     }
 
     try {
       const data = await FormService.searchForms(null, currentStatusFilter, conditionalFilter);
       setForms(data);
       setLoading(false);
-      setCurrentPage(1); // Resetar para a primeira página ao mudar o filtro
+      setCurrentPage(1);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load forms.');
       setLoading(false);
@@ -149,7 +152,6 @@ const AdminFormsPage = () => {
     }
   };
 
-  // State e handlers para o menu de ações de cada linha
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentFormId, setCurrentFormId] = useState(null);
   const open = Boolean(anchorEl);
@@ -162,7 +164,6 @@ const AdminFormsPage = () => {
     setCurrentFormId(null);
   };
 
-  // Encontrar o formulário selecionado pelo menu
   const currentForm = forms.find(form => form.id === currentFormId);
 
   if (loading) {
@@ -176,127 +177,126 @@ const AdminFormsPage = () => {
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-        <Link underline="hover" sx={{ color: 'text.primary' }} href="/admin">
-          {t("breadcrumb_home")}
+        <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Typography color="text.primary">{t("formsTitle")}</Typography>
       </Breadcrumbs>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h6">{t("formsTitle")}</Typography>
-        <Stack direction="row" spacing={2} alignItems="center">
-          {/* Seletor de Status (Ativo/Inativo) */}
-          <FormControl sx={{ minWidth: 120 }}>
-            <InputLabel>{t("filterStatus")}</InputLabel>
-            <Select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              label={t("filterStatus")}
+      <Paper sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+          <Typography variant="h6">{t("formsTitle")}</Typography>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <FormControl sx={{ minWidth: 120 }}>
+              <InputLabel>{t("filterStatus")}</InputLabel>
+              <Select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                label={t("filterStatus")}
+                size="small"
+              >
+                <MenuItem value="todos">{t("allStatus")}</MenuItem>
+                <MenuItem value="ativos">{t("activeStatus")}</MenuItem>
+                <MenuItem value="inativos">{t("inactiveStatus")}</MenuItem>
+              </Select>
+            </FormControl>
+
+            <FormControl sx={{ minWidth: 120 }}>
+              <InputLabel>{t("filterType")}</InputLabel>
+              <Select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                label={t("filterType")}
+                size="small"
+              >
+                <MenuItem value="todos">{t("allTypes")}</MenuItem>
+                <MenuItem value="normais">{t("normalForms")}</MenuItem>
+                <MenuItem value="condicionais">{t("conditionalForms")}</MenuItem>
+              </Select>
+            </FormControl>
+
+            <Button
+              component={RouterLink}
+              to="/admin/forms/new"
+              variant="contained"
+              color="info"
               size="small"
+              startIcon={<AddIcon />}
             >
-              <MenuItem value="todos">{t("allStatus")}</MenuItem>
-              <MenuItem value="ativos">{t("activeStatus")}</MenuItem>
-              <MenuItem value="inativos">{t("inactiveStatus")}</MenuItem>
-            </Select>
-          </FormControl>
+              {t("newForm")}
+            </Button>
 
-          {/* Seletor de Tipo (Normal/Condicional) */}
-          <FormControl sx={{ minWidth: 120 }}>
-            <InputLabel>{t("filterType")}</InputLabel>
-            <Select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              label={t("filterType")}
+            {/* botão para mudar idioma */}
+            <Button
+              variant="outlined"
               size="small"
+              onClick={() => {
+                const currentIndex = languages.indexOf(i18n.language);
+                const nextIndex = (currentIndex + 1) % languages.length;
+                i18n.changeLanguage(languages[nextIndex]);
+              }}
             >
-              <MenuItem value="todos">{t("allTypes")}</MenuItem>
-              <MenuItem value="normais">{t("normalForms")}</MenuItem>
-              <MenuItem value="condicionais">{t("conditionalForms")}</MenuItem>
-            </Select>
-          </FormControl>
+              {i18n.language.toUpperCase()}
+            </Button>
+          </Stack>
+        </Box>
 
-          <Button
-            component={Link}
-            to="/admin/forms/new"
-            variant="contained"
-            color="info"
-            size="small"
-            startIcon={<AddIcon />}
-          >
-            {t("newForm")}
-          </Button>
+        {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
-          {/* botão para mudar idioma */}
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={() => {
-              const currentIndex = languages.indexOf(i18n.language);
-              const nextIndex = (currentIndex + 1) % languages.length;
-              i18n.changeLanguage(languages[nextIndex]);
-            }}
-          >
-            {i18n.language.toUpperCase()}
-          </Button>
-        </Stack>
-      </Box>
-
-      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>{t("name")}</TableCell>
-              <TableCell>{t("company")}</TableCell>
-              <TableCell>{t("language")}</TableCell>
-              <TableCell>{t("status")}</TableCell>
-              <TableCell>{t("type")}</TableCell>
-              <TableCell align="right">{t("actions")}</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {forms
-              .slice((currentPage - 1) * formsPerPage, currentPage * formsPerPage)
-              .map((form) => (
-                <TableRow key={form.id} hover>
-                  <TableCell>{form.name}</TableCell>
-                  <TableCell>{form.companyName}</TableCell>
-                  <TableCell>{form.language || 'pt-BR'}</TableCell>
-                  <TableCell>
-                    <Chip  size="small"
-                      label={form.active ? t("active") : t("inactive")}
-                      color={form.active ? "success" : "default"}
-                      variant="outlined"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Chip  size="small"
-                      label={form.conditional ? t("conditionalForm") : t("normalForm")}
-                      color={form.conditional ? "warning" : "default"}
-                      variant="text"
-                    />
-                  </TableCell>
-                  <TableCell align="right" >
-                    <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
-                      <IconButton
-                        aria-label="more"
-                        id="long-button"
-                        aria-controls={open ? 'long-menu' : undefined}
-                        aria-expanded={open ? 'true' : undefined}
-                        aria-haspopup="true"
-                        onClick={(e) => handleMenuClick(e, form.id)}
-                        size="small"
-                      >
-                        <MoreVertIcon />
-                      </IconButton>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+        <TableContainer component={Paper} elevation={0}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>{t("name")}</TableCell>
+                <TableCell>{t("company")}</TableCell>
+                <TableCell>{t("language")}</TableCell>
+                <TableCell>{t("status")}</TableCell>
+                <TableCell>{t("type")}</TableCell>
+                <TableCell align="right">{t("actions")}</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {forms
+                .slice((currentPage - 1) * formsPerPage, currentPage * formsPerPage)
+                .map((form) => (
+                  <TableRow key={form.id} hover>
+                    <TableCell>{form.name}</TableCell>
+                    <TableCell>{form.companyName}</TableCell>
+                    <TableCell>{form.language || 'pt-BR'}</TableCell>
+                    <TableCell>
+                      <Chip size="small"
+                        label={form.active ? t("active") : t("inactive")}
+                        color={form.active ? "success" : "default"}
+                        variant="outlined"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Chip size="small"
+                        label={form.conditional ? t("conditionalForm") : t("normalForm")}
+                        color={form.conditional ? "warning" : "default"}
+                        variant="text"
+                      />
+                    </TableCell>
+                    <TableCell align="right" >
+                      <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+                        <IconButton
+                          aria-label="more"
+                          id="long-button"
+                          aria-controls={open ? 'long-menu' : undefined}
+                          aria-expanded={open ? 'true' : undefined}
+                          aria-haspopup="true"
+                          onClick={(e) => handleMenuClick(e, form.id)}
+                          size="small"
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
 
       <Menu
         id="long-menu"
@@ -339,7 +339,7 @@ const AdminFormsPage = () => {
                 handleOpenDeactivateModal(currentForm);
                 handleMenuClose();
               }}>
-                <DeleteIcon fontSize="small" sx={{mr:1}}/> {t("deactivate")}
+                <DeleteIcon fontSize="small" sx={{ mr: 1 }} /> {t("deactivate")}
               </MenuItem>
             ) : (
               <MenuItem key="activate" onClick={() => {

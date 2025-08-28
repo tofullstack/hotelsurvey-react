@@ -20,7 +20,7 @@ const LoginPage = () => {
       if (response.mustChangePassword) {
         navigate('/change-password');
       } else {
-        navigate('/admin/forms');
+        navigate('/admin/dashboard');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Falha no login. Verifique suas credenciais.');

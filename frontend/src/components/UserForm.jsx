@@ -1,6 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Link as RouterLink } from 'react-router-dom';
+
 import {
   Button,
   TextField,
@@ -12,7 +14,7 @@ import {
   CircularProgress,
   Typography,
 } from '@mui/material';
-import CompanyService from '../services/company.service'; 
+import CompanyService from '../services/company.service';
 
 const UserForm = ({ user, onSave, onCancel }) => {
   const { t } = useTranslation();
@@ -20,7 +22,7 @@ const UserForm = ({ user, onSave, onCancel }) => {
   const [password, setPassword] = useState('');
   const [profile, setProfile] = useState(user?.profile || 'USUARIO');
   const [companyId, setCompanyId] = useState(user?.companyId || '');
-  
+
   const [companies, setCompanies] = useState([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const [errorCompanies, setErrorCompanies] = useState(null);
@@ -29,8 +31,8 @@ const UserForm = ({ user, onSave, onCancel }) => {
     const fetchCompanies = async () => {
       try {
         setLoadingCompanies(true);
-        const response = await CompanyService.getAllCompanies(); 
-        
+        const response = await CompanyService.getAllCompanies();
+
         if (response && response.content) {
           setCompanies(response.content);
         } else {
@@ -43,7 +45,7 @@ const UserForm = ({ user, onSave, onCancel }) => {
         setLoadingCompanies(false);
       }
     };
-    
+
     fetchCompanies();
   }, []);
 
@@ -79,8 +81,12 @@ const UserForm = ({ user, onSave, onCancel }) => {
           label={t('userProfile')}
           onChange={(e) => setProfile(e.target.value)}
         >
-          <MenuItem value="ADMIN">ADMIN</MenuItem>
-          <MenuItem value="USUARIO">USUARIO</MenuItem>
+          <MenuItem value="ADMIN">
+            {t("menu_item_user_management_admin")}
+          </MenuItem>
+          <MenuItem value="USUARIO">
+            {t("menu_item_user_management_user")}
+          </MenuItem>
         </Select>
       </FormControl>
 

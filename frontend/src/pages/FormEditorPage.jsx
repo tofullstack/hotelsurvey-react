@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FormService from "../services/form.service";
 import { useTranslation, Trans } from "react-i18next";
+import { Link as RouterLink } from 'react-router-dom';
+
 import {
   Container,
   Box,
@@ -361,10 +363,9 @@ const FormEditorPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-      {/* Breadcrumbs Adicionados */}
+      
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-        <Link underline="hover" color="inherit" href="/admin">
-          {t("breadcrumb_home")}
+      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Link underline="hover" color="inherit" href="/admin/forms">
           {t("formsTitle")}

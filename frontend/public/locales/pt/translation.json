@@ -1,5 +1,6 @@
 {
     "menu_forms": "Formulários",
+    "menu_dashboard": "Dashboard",
     "menu_companies": "Empresas",
     "manageCompanies": "Gerenciar Empresas",
     "menu_reports": "Relatórios",
@@ -94,6 +95,7 @@
     "failToLoadUsers": "Falha ao carregar os usuários. Por favor tente novamente",
     "userUpdatedSuccessfully": "Usuário atualizado com sucesso!",
     "userCreatedSuccessfully": "Usuário criado com sucesso!",
+    "userDeactivatedSuccessfully": "Usuário desativado com sucesso!",
     "failToSaveUser": "Erro ao salvar usuário.",
     "failToActivateUser": "Erro ao ativar usuário.",
     "failToLoadPreview": "Falha ao carregar a pré-visualização.",
@@ -180,6 +182,7 @@
     "menu_company_form_create_title":"Criar Empresa",
     "menu_company_form_name_placeholder":"Nome da Empresa",
     "menu_company_form_series_placeholder":"Série da Empresa",
+    "menu_company_toggle_title_modal_activate":"Confirmar Ativação",
     "english": "Inglês",
     "portuguese": "Português",
     "spanish": "Espanhol",
@@ -201,6 +204,8 @@
     "activeStatus": "Ativos",
     "inactiveStatus": "Inativos",
     "filterType": "Filtrar Tipo",
-    "allTypes": "Todos"
+    "allTypes": "Todos",
+    "menu_item_user_management_admin": "Administrador",
+    "menu_item_user_management_user": "Usuário Comum"
 
 }

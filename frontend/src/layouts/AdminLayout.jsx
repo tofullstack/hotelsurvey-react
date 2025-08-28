@@ -23,26 +23,31 @@ const AdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [open] = React.useState(true);
-  const { t } = useTranslation(); 
+  const { t } = useTranslation();
 
   const menuItems = [
     {
-      text: t("menu_forms"), 
+      text: t("menu_dashboard"),
+      icon: <DashboardIcon />,
+      path: '/admin/dashboard',
+    },
+    {
+      text: t("menu_forms"),
       icon: <TableViewIcon />,
       path: '/admin/forms',
     },
     {
-      text: t("menu_companies"), 
+      text: t("menu_companies"),
       icon: <BusinessIcon />,
       path: '/admin/companies',
     },
     {
-      text: t("menu_reports"), 
+      text: t("menu_reports"),
       icon: <BarChartIcon />,
       path: '/admin/reports',
     },
     {
-      text: t("menu_users"), 
+      text: t("menu_users"),
       icon: <ManageAccountsIcon />,
       path: '/admin/users',
     }

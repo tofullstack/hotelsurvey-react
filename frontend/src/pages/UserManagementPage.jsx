@@ -18,11 +18,11 @@ import {
   Box,
   Typography,
   Container,
-  Breadcrumbs, 
-  Link, 
+  Breadcrumbs,
+  Link,
   Stack,
   Pagination,
-  Chip, 
+  Chip,
   IconButton,
   Menu,
   MenuItem
@@ -33,6 +33,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import UserService from '../services/user.service';
 import UserForm from '../components/UserForm';
+import Alert from '@mui/material/Alert';
+import Collapse from '@mui/material/Collapse';
+import CheckIcon from '@mui/icons-material/Check';
+import { Link as RouterLink } from 'react-router-dom';
+
+
 
 const UserManagementPage = () => {
   const { t } = useTranslation();
@@ -50,9 +56,10 @@ const UserManagementPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
 
-  // State e handlers para o menu de ações de cada linha
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const [alertInfo, setAlertInfo] = useState({ open: false, message: '', severity: 'success' });
+
   const open = Boolean(anchorEl);
   const handleMenuClick = (event, userId) => {
     setAnchorEl(event.currentTarget);
@@ -62,7 +69,14 @@ const UserManagementPage = () => {
     setAnchorEl(null);
     setCurrentUserId(null);
   };
-  
+
+
+  const showAlert = (message, severity) => {
+    setAlertInfo({ open: true, message, severity });
+    setTimeout(() => {
+      setAlertInfo({ ...alertInfo, open: false });
+    }, 3000); // 3 segundos
+  };
 
   const currentUser = users.find(user => user.id === currentUserId);
 
@@ -80,8 +94,10 @@ const UserManagementPage = () => {
     if (!selectedUserForDeactivate) return;
     try {
       await UserService.deactivateUser(selectedUserForDeactivate.id);
-      fetchUsers(); 
+      showAlert(t('userDeactivatedSuccessfully'), 'success');
+      fetchUsers();
     } catch (err) {
+      showAlert(err.response?.data?.message || t('failToDeactivateUser'), 'error');
       setError(err.response?.data?.message || t('failToDeactivateUser'));
     } finally {
       handleCloseDeactivateModal();
@@ -101,12 +117,12 @@ const UserManagementPage = () => {
         setTotalPages(data.totalPages);
       } else {
         if (Array.isArray(data)) {
-           setUsers(data);
-           setTotalPages(1);
+          setUsers(data);
+          setTotalPages(1);
         } else {
-           setUsers([]);
-           setTotalPages(0);
-           console.error("API response for users is not a valid array:", data);
+          setUsers([]);
+          setTotalPages(0);
+          console.error("API response for users is not a valid array:", data);
         }
       }
     } catch (err) {
@@ -145,16 +161,17 @@ const UserManagementPage = () => {
           companyId: userData.companyId,
         };
         await UserService.updateUser(selectedUser.id, userToUpdate);
-        alert(t('userUpdatedSuccessfully'));
+        showAlert(t('userUpdatedSuccessfully'), 'success');
       } else {
         await UserService.createUser(userData);
-        alert(t('userCreatedSuccessfully'));
+        showAlert(t('userCreatedSuccessfully'), 'success');
       }
       handleCloseModal();
-      fetchUsers(); 
+      fetchUsers();
     } catch (err) {
       setError(err.response?.data?.message || t('failToSaveUser'));
       console.error(err);
+      showAlert(err.response?.data?.message || t('failToSaveUser'), 'error');
     }
   };
 
@@ -182,9 +199,20 @@ const UserManagementPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
+
+      <Collapse in={alertInfo.open}>
+        <Alert
+          icon={<CheckIcon fontSize="inherit" />}
+          severity={alertInfo.severity}
+          sx={{ mb: 2 }}
+          onClose={() => setAlertInfo({ ...alertInfo, open: false })}
+        >
+          {alertInfo.message}
+        </Alert>
+      </Collapse>
+      
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-        <Link underline="hover" color="inherit" href="/admin">
-          {t("breadcrumb_home")}
+      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Typography color="text.primary">{t("manageUsers")}</Typography>
       </Breadcrumbs>
@@ -223,13 +251,21 @@ const UserManagementPage = () => {
                   <TableRow key={user.id} hover>
                     {/* <TableCell>{user.id}</TableCell> */}
                     <TableCell>{user.login}</TableCell>
-                    <TableCell>{user.profile}</TableCell>
+
+                    <TableCell>
+                      <Chip
+                        size="small"
+                        label={user.profile === "ADMIN" ? t("menu_item_user_management_admin") : t("menu_item_user_management_user")}
+                        color={user.profile === "ADMIN" ? "primary" : "default"}
+                        variant="text"
+                      />
+                    </TableCell>
                     <TableCell>{user.companyName || t('notApplicable')}</TableCell>
                     <TableCell>
                       <Chip size='small'
                         label={user.active ? t('active') : t('inactive')}
                         color={user.active ? 'success' : 'default'}
-                        variant="outlined"/>
+                        variant="outlined" />
                     </TableCell>
                     <TableCell align="right">
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -259,7 +295,7 @@ const UserManagementPage = () => {
             </TableBody>
           </Table>
         </TableContainer>
-        
+
         <Menu
           id="long-menu"
           MenuListProps={{

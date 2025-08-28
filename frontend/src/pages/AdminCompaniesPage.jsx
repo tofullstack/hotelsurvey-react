@@ -34,6 +34,8 @@ import Pagination from "@mui/material/Pagination";
 import { Edit, Search as SearchIcon, Add as AddIcon, Delete, MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { Link as RouterLink } from 'react-router-dom';
+
 
 const AdminCompaniesPage = () => {
   const navigate = useNavigate();
@@ -118,8 +120,7 @@ const AdminCompaniesPage = () => {
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-        <Link underline="hover"  sx={{ color: 'text.primary' }} href="/admin">
-          {t("breadcrumb_home")}
+      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Typography color="text.primary">{t("breadcrumb_companies")}</Typography>
       </Breadcrumbs>
