@@ -22,6 +22,11 @@ import SentimentDissatisfiedIcon from "@mui/icons-material/SentimentDissatisfied
 import SentimentSatisfiedIcon from "@mui/icons-material/SentimentSatisfied";
 import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAltOutlined";
 import SentimentVerySatisfiedIcon from "@mui/icons-material/SentimentVerySatisfied";
+import IconButton from '@mui/material/IconButton';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline'; // Ícone para 'Sim'
+import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
+
+import MoodIcon from '@mui/icons-material/Mood';
 
 // === carinhas ===
 const StyledRating = styled(Rating)(({ theme }) => ({
@@ -122,19 +127,27 @@ const QuestionComponent = ({ question, value, onChange, isSectionDenied, languag
             ))}
           </Select>
         );
-      case "YES_NO":
-        return (
-          <RadioGroup
-            row
-            name={`question-${question.id}`}
-            value={value || ""}
-            onChange={(e) => onChange(e.target.value)}
-            sx={{ gap: 4 }}
-          >
-            <FormControlLabel value="true" control={<Radio />} label={t("yes")} />
-            <FormControlLabel value="false" control={<Radio />} label={t("no")} />
-          </RadioGroup>
-        );
+        case "YES_NO":
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 4 }}>
+      <IconButton
+        color={value === "true" ? "success" : "default"}
+        onClick={() => onChange("true")}
+        size="small"
+        aria-label={t("yes")}
+      >
+        <CheckCircleOutlineIcon sx={{ fontSize: 40 }} />
+      </IconButton>
+      <IconButton
+        color={value === "false" ? "error" : "default"}
+        onClick={() => onChange("false")}
+        size="small"
+        aria-label={t("no")}
+      >
+        <CancelOutlinedIcon sx={{ fontSize: 40 }} />
+      </IconButton>
+    </Box>
+  );
       case "SCALE": {
         const maxRating =
           options.length > 0 ? parseInt(options[options.length - 1], 10) : 5;

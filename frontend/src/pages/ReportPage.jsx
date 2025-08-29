@@ -29,8 +29,8 @@ import {
   Select,
   MenuItem,
   Pagination,
-  Breadcrumbs, 
-  Link,  
+  Breadcrumbs,
+  Link,
 } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
@@ -39,15 +39,15 @@ import { Link as RouterLink } from 'react-router-dom';
 
 
 const languages = [
-    { code: 'en-US', i18nKey: 'english' },
-    { code: 'pt-BR', i18nKey: 'portuguese' },
-    { code: 'es-ES', i18nKey: 'spanish' },
-    { code: 'fr-FR', i18nKey: 'french' },
-    { code: 'de-DE', i18nKey: 'german' },
-    { code: 'it-IT', i18nKey: 'italian' },
-    { code: 'ja-JP', i18nKey: 'japanese' },
-    { code: 'ko-KR', i18nKey: 'korean' },
-    { code: 'zh-CN', i18nKey: 'chinese' },
+  { code: 'en-US', i18nKey: 'english' },
+  { code: 'pt-BR', i18nKey: 'portuguese' },
+  { code: 'es-ES', i18nKey: 'spanish' },
+  { code: 'fr-FR', i18nKey: 'french' },
+  { code: 'de-DE', i18nKey: 'german' },
+  { code: 'it-IT', i18nKey: 'italian' },
+  { code: 'ja-JP', i18nKey: 'japanese' },
+  { code: 'ko-KR', i18nKey: 'korean' },
+  { code: 'zh-CN', i18nKey: 'chinese' },
 ];
 
 const ReportPage = () => {
@@ -166,7 +166,7 @@ const ReportPage = () => {
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
+        <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Typography color="text.primary">{t("reportsTitle")}</Typography>
       </Breadcrumbs>
@@ -187,7 +187,7 @@ const ReportPage = () => {
               onChange={handleFilterChange}
             />
           </Grid>
-          
+
           <Grid item xs={12} sm={6} md={3}>
             <FormControl fullWidth>
               <InputLabel id="language-select-label">{t('language')}</InputLabel>
@@ -239,27 +239,27 @@ const ReportPage = () => {
             </Button>
           </Grid>
         </Grid>
-        
+
         <Box sx={{ mt: 4, pt: 2, borderTop: '1px solid #e0e0e0' }}>
-            <Typography variant="h6" mb={2}>{t('reportSummary')}</Typography>
-            <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                    <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
-                        <Typography variant="body1">
-                            {t('totalResponses')}: <strong>{totalResponses}</strong>
-                        </Typography>
-                    </Paper>
-                </Grid>
-                {averageRating !== null && (
-                    <Grid item xs={12} sm={6}>
-                        <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
-                            <Typography variant="body1">
-                                {t('averageRating')}: <strong>{averageRating.toFixed(2)}</strong>
-                            </Typography>
-                        </Paper>
-                    </Grid>
-                )}
+          <Typography variant="h6" mb={2}>{t('reportSummary')}</Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
+                <Typography variant="body1">
+                  {t('totalResponses')}: <strong>{totalResponses}</strong>
+                </Typography>
+              </Paper>
             </Grid>
+            {averageRating !== null && (
+              <Grid item xs={12} sm={6}>
+                <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
+                  <Typography variant="body1">
+                    {t('averageRating')}: <strong>{averageRating.toFixed(2)}</strong>
+                  </Typography>
+                </Paper>
+              </Grid>
+            )}
+          </Grid>
         </Box>
       </Paper>
 
@@ -273,7 +273,7 @@ const ReportPage = () => {
           </Button>
         </Stack>
       </Box>
-      
+
       {Array.isArray(responses) && responses.length > 0 ? (
         <TableContainer component={Paper}>
           <Table>
@@ -311,24 +311,36 @@ const ReportPage = () => {
                   <TableRow>
                     <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
                       <Collapse in={open[response.id]} timeout="auto" unmountOnExit>
-                        <Box sx={{ margin: 1 }}>
-                          <Typography variant="h6" gutterBottom component="div">
+                        <Box sx={{ margin: 2, padding: 2, bgcolor: 'background.default', borderRadius: 2 }}>
+                          <Typography variant="h6" gutterBottom>
                             {t('answersForId', { id: response.id })}
                           </Typography>
-                          <List disablePadding>
+                          <Grid container spacing={2}>
                             {response.answers.map(answer => (
-                              <ListItem key={answer.answerId} sx={{ py: 0, px: 2 }}>
-                                <ListItemText
-                                  primary={<strong>{answer.surveySectionName} - {answer.questionLabel}:</strong>}
-                                  secondary={answer.didNotUseService ? t('didNotUseService') : answer.answerValue}
-                                />
-                              </ListItem>
+                              <Grid item xs={12} sm={6} md={4} key={answer.answerId}>
+                                <Paper elevation={2} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                  <Typography variant="subtitle2" color="text.secondary" noWrap>
+                                    {answer.surveySectionName}
+                                  </Typography>
+                                  <Typography variant="body1" fontWeight="bold" sx={{ mt: 1 }}>
+                                    {answer.questionLabel}
+                                  </Typography>
+                                  <Typography variant="body1" sx={{ mt: 1, wordWrap: 'break-word', flexGrow: 1 }}>
+                                    {answer.didNotUseService ? t('didNotUseService') : answer.answerValue}
+                                  </Typography>
+                                </Paper>
+                              </Grid>
                             ))}
-                          </List>
+                          </Grid>
                           {response.freeTextFeedback && (
-                            <Typography variant="body2" sx={{ mt: 2, ml: 2 }}>
-                              <strong>{t('fullFeedback')}:</strong> {response.freeTextFeedback}
-                            </Typography>
+                            <Paper elevation={2} sx={{ p: 2, mt: 3 }}>
+                              <Typography variant="body2" fontWeight="bold">
+                                {t('fullFeedback')}:
+                              </Typography>
+                              <Typography variant="body2" sx={{ mt: 1 }}>
+                                {response.freeTextFeedback}
+                              </Typography>
+                            </Paper>
                           )}
                         </Box>
                       </Collapse>

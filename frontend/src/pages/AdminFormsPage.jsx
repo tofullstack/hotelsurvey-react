@@ -8,9 +8,7 @@ import Modal from '@mui/material/Modal';
 import PreviewModal from '../components/PreviewModal';
 import { useTranslation, Trans } from "react-i18next";
 import DeleteIcon from '@mui/icons-material/Delete';
-
-
-
+import CheckIcon from '@mui/icons-material/Check';
 import {
   Container,
   Box,
@@ -34,7 +32,8 @@ import {
   InputLabel,
   FormControl,
   IconButton,
-  Menu
+  Menu,
+  Collapse
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -56,12 +55,6 @@ const AdminFormsPage = () => {
   const [statusFilter, setStatusFilter] = useState('todos');
   const [typeFilter, setTypeFilter] = useState('todos');
 
-  const handleOpenModal = () => setOpenModal(true);
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setSelectedFormForQr(null);
-  };
-
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -72,6 +65,21 @@ const AdminFormsPage = () => {
 
   const [openDeactivateModal, setOpenDeactivateModal] = useState(false);
   const [selectedFormForDeactivate, setSelectedFormForDeactivate] = useState(null);
+
+  const [alertInfo, setAlertInfo] = useState({ open: false, message: '', severity: 'success' });
+
+  const showAlert = (message, severity) => {
+    setAlertInfo({ open: true, message, severity });
+    setTimeout(() => {
+      setAlertInfo({ ...alertInfo, open: false });
+    }, 3000); // 3 segundos
+  };
+
+  const handleOpenModal = () => setOpenModal(true);
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    setSelectedFormForQr(null);
+  };
 
   const handleOpenDeactivateModal = (form) => {
     setSelectedFormForDeactivate(form);
@@ -90,8 +98,10 @@ const AdminFormsPage = () => {
       setForms(forms.map(f =>
         f.id === selectedFormForDeactivate.id ? { ...f, active: false } : f
       ));
+      showAlert(t('formDeactivatedSuccessfully'), 'success');
     } catch (err) {
-      setError(err.response?.data?.message || 'Falha ao desativar formulário.');
+      setError(err.response?.data?.message || t('failToDeactivateForm'));
+      showAlert(err.response?.data?.message || t('failToDeactivateForm'), 'error');
     } finally {
       handleCloseDeactivateModal();
     }
@@ -147,8 +157,10 @@ const AdminFormsPage = () => {
     try {
       await FormService.activateForm(formId);
       setForms(forms.map(f => f.id === formId ? { ...f, active: true } : f));
+      showAlert(t('formActivatedSuccessfully'), 'success');
     } catch (err) {
-      setError(err.response?.data?.message || 'Falha ao ativar formulário.');
+      setError(err.response?.data?.message || t('failToActivateForm'));
+      showAlert(err.response?.data?.message || t('failToActivateForm'), 'error');
     }
   };
 
@@ -176,6 +188,17 @@ const AdminFormsPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
+      <Collapse in={alertInfo.open}>
+        <Alert
+          icon={<CheckIcon fontSize="inherit" />}
+          severity={alertInfo.severity}
+          sx={{ mb: 2 }}
+          onClose={() => setAlertInfo({ ...alertInfo, open: false })}
+        >
+          {alertInfo.message}
+        </Alert>
+      </Collapse>
+      
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
         <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>

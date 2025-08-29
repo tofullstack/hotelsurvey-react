@@ -28,13 +28,16 @@ import {
   FormControl,
   InputLabel,
   Chip,
-  Menu
+  Menu,
+  Alert,
+  Collapse
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
 import { Edit, Search as SearchIcon, Add as AddIcon, Delete, MoreVert as MoreVertIcon } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from 'react-router-dom';
+import CheckIcon from '@mui/icons-material/Check';
 
 
 const AdminCompaniesPage = () => {
@@ -53,10 +56,19 @@ const AdminCompaniesPage = () => {
   const [openConfirm, setOpenConfirm] = useState(false);
   const [companyToToggle, setCompanyToToggle] = useState(null);
 
-  // State e handlers para o menu de ações de cada linha
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentCompanyId, setCurrentCompanyId] = useState(null);
   const openMenu = Boolean(anchorEl);
+
+  const [alertInfo, setAlertInfo] = useState({ open: false, message: '', severity: 'success' });
+
+  const showAlert = (message, severity) => {
+    setAlertInfo({ open: true, message, severity });
+    setTimeout(() => {
+      setAlertInfo({ ...alertInfo, open: false });
+    }, 3000); // 3 segundos
+  };
+
   const handleMenuClick = (event, companyId) => {
     setAnchorEl(event.currentTarget);
     setCurrentCompanyId(companyId);
@@ -82,6 +94,7 @@ const AdminCompaniesPage = () => {
       setTotalPages(response.totalPages || 0);
     } catch (error) {
       console.error("Erro ao buscar empresas:", error);
+      showAlert(t('failToLoadCompanies'), 'error');
       setCompanies([]);
       setTotalPages(0);
     } finally {
@@ -107,9 +120,14 @@ const AdminCompaniesPage = () => {
     if (companyToToggle) {
       try {
         await CompanyService.updateCompanyStatus(companyToToggle.id, !companyToToggle.active);
+        showAlert(
+          companyToToggle.active ? t('companyDeactivatedSuccessfully') : t('companyActivatedSuccessfully'),
+          'success'
+        );
         fetchCompanies();
       } catch (error) {
         console.error("Erro ao atualizar status da empresa:", error);
+        showAlert(error.response?.data?.message || t('failToUpdateCompanyStatus'), 'error');
       } finally {
         setOpenConfirm(false);
         setCompanyToToggle(null);
@@ -119,6 +137,18 @@ const AdminCompaniesPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
+      
+      <Collapse in={alertInfo.open}>
+        <Alert
+          icon={<CheckIcon fontSize="inherit" />}
+          severity={alertInfo.severity}
+          sx={{ mb: 2 }}
+          onClose={() => setAlertInfo({ ...alertInfo, open: false })}
+        >
+          {alertInfo.message}
+        </Alert>
+      </Collapse>
+      
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
       <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>

@@ -59,6 +59,8 @@ const SurveyForm = ({ formId, language }) => {
   const [conditionalForm, setConditionalForm] = useState(null);
   const [conditionalAnswers, setConditionalAnswers] = useState({});
 
+  const [alertInfo, setAlertInfo] = useState({ open: false, message: '', severity: 'success' });
+
   const baseLanguages = [
     'pt-BR', 'en-US', 'de-DE', 'es-ES', 'fr-FR', 'it-IT', 'ja-JP', 'ko-KR', 'zh-CN',
   ];
@@ -83,6 +85,13 @@ const SurveyForm = ({ formId, language }) => {
       setLoading(false);
       return;
     }
+
+    const showAlert = (message, severity) => {
+      setAlertInfo({ open: true, message, severity });
+      setTimeout(() => {
+        setAlertInfo({ ...alertInfo, open: false });
+      }, 3000); // 3 segundos
+    };
 
     const fetchSurvey = async () => {
       try {
@@ -192,6 +201,20 @@ const SurveyForm = ({ formId, language }) => {
 
   const handleConditionalSubmit = async (e) => {
     e.preventDefault();
+  
+    const areAllAnswered = conditionalForm.questions.every(q => {
+
+      return !!conditionalAnswers[q.id];
+    });
+  
+    if (!areAllAnswered) {
+      console.error("Please answer all questions in the conditional form.");
+      showAlert(err.response?.data?.message || t('messageConditionalForm'), 'error');
+
+
+      return; 
+    }
+  
     setAllAnswers(prev => {
       const newAnswers = { ...prev };
       conditionalForm.questions.forEach(q => {
@@ -202,11 +225,11 @@ const SurveyForm = ({ formId, language }) => {
       });
       return newAnswers;
     });
-
+  
     setConditionalForm(null);
     setConditionalAnswers({});
     setIsModalOpen(false);
-
+  
     setTimeout(() => {
       if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
         setCurrentQuestionIndex(prevIndex => prevIndex + 1);
@@ -237,7 +260,7 @@ const SurveyForm = ({ formId, language }) => {
       formId: formId,
       guestIdentifier: guestIdentifier,
       freeTextFeedback: freeTextFeedback,
-      language: selectedLanguage, // <-- Linha adicionada
+      language: selectedLanguage,
       answers: submittedAnswers,
       serieEmpresa: surveyStructure.serieEmpresa,
     };
@@ -356,14 +379,12 @@ const SurveyForm = ({ formId, language }) => {
 
       <Modal
         open={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
         <Box sx={style}>
           <IconButton
             aria-label="close"
-            onClick={() => setIsModalOpen(false)}
             sx={{
               position: 'absolute',
               right: 8,
