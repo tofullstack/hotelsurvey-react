@@ -24,6 +24,13 @@ const AuthService = {
     }
   },
 
+  logout: () => {
+    // romove token do localStorage
+    localStorage.removeItem("token");
+    // remove o perfil do usuário ou qualquer outra informação
+    localStorage.removeItem("userProfile"); 
+  },
+
 };
 
 export default AuthService;

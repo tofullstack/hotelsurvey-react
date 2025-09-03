@@ -1,3 +1,5 @@
+// src/layouts/AdminLayout.js
+
 import React from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +18,10 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import TableViewIcon from '@mui/icons-material/TableView';
 import BusinessIcon from '@mui/icons-material/Business';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AuthService from '../services/auth.service';
+
+import LanguageActionButtons from '../components/LanguageBottomNavigation';
 
 const drawerWidth = 120;
 
@@ -50,6 +56,15 @@ const AdminLayout = () => {
       text: t("menu_users"),
       icon: <ManageAccountsIcon />,
       path: '/admin/users',
+    },
+    {
+      text: t("menu_logout"),
+      icon: <LogoutIcon />,
+      action: () => {
+        AuthService.logout();
+        navigate('/login');
+      },
+      isLogout: true,
     }
   ];
 
@@ -82,7 +97,13 @@ const AdminLayout = () => {
               <ListItem
                 key={item.text}
                 button
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  if (item.action) {
+                    item.action();
+                  } else {
+                    navigate(item.path);
+                  }
+                }}
                 selected={selected}
                 sx={{
                   display: 'flex',
@@ -92,6 +113,10 @@ const AdminLayout = () => {
                   width: '100%',
                   height: 65,
                   color: selected ? 'primary.main' : 'inherit',
+                  ...(item.isLogout && {
+                    mt: 'auto',
+                    borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+                  }),
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 'auto', color: 'inherit' }}>
@@ -116,6 +141,8 @@ const AdminLayout = () => {
       <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
         <Outlet />
       </Box>
+
+      <LanguageActionButtons />
     </Box>
   );
 };

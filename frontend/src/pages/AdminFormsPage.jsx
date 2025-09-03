@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import FormService from '../services/form.service';
+import LanguageBottomNavigation from '../components/LanguageBottomNavigation';
 import QRCodeDisplay from '../components/QRCodeDisplay';
 import { useNavigate } from 'react-router-dom';
-import { Link as RouterLink } from 'react-router-dom'; 
+import { Link as RouterLink } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import Modal from '@mui/material/Modal';
 import PreviewModal from '../components/PreviewModal';
@@ -43,10 +44,10 @@ import {
   MoreVert as MoreVertIcon
 } from '@mui/icons-material';
 
+
 const AdminFormsPage = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const languages = ["pt", "en", "es"];
 
   const [forms, setForms] = useState([]);
   const [selectedFormForQr, setSelectedFormForQr] = useState(null);
@@ -246,19 +247,6 @@ const AdminFormsPage = () => {
               startIcon={<AddIcon />}
             >
               {t("newForm")}
-            </Button>
-
-            {/* botão para mudar idioma */}
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => {
-                const currentIndex = languages.indexOf(i18n.language);
-                const nextIndex = (currentIndex + 1) % languages.length;
-                i18n.changeLanguage(languages[nextIndex]);
-              }}
-            >
-              {i18n.language.toUpperCase()}
             </Button>
           </Stack>
         </Box>
@@ -466,6 +454,9 @@ const AdminFormsPage = () => {
         handleClose={handleClosePreviewModal}
         formId={selectedFormId}
       />
+
+      {/* Adicione o componente de navegação inferior aqui */}
+      <LanguageBottomNavigation />
     </Container>
   );
 };

@@ -176,7 +176,7 @@ const ReportPage = () => {
       </Typography>
 
       <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4 }}>
-        <Typography variant="h6" mb={3}>{t('filters')}</Typography>
+        {/* <Typography variant="h6" mb={3}>{t('filters')}</Typography> */}
         <Grid container spacing={3}>
           <Grid item xs={12} sm={6} md={3}>
             <TextField
