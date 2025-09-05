@@ -36,6 +36,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import { Link as RouterLink } from 'react-router-dom';
+import DownloadIcon from '@mui/icons-material/Download';
 
 
 const languages = [
@@ -56,6 +57,7 @@ const ReportPage = () => {
   const [responses, setResponses] = useState([]);
   const [totalResponses, setTotalResponses] = useState(0);
   const [averageRating, setAverageRating] = useState(null);
+  const [ratingStandardDeviation, setRatingStandardDeviation] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
@@ -97,6 +99,20 @@ const ReportPage = () => {
       setLoading(false);
     }
   };
+  const handleDownloadSingle = async (response) => {
+    try {
+      const data = await ReportService.downloadSingleReport(response.id);
+      const url = window.URL.createObjectURL(new Blob([data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `relatorio_${response.id}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+    } catch (err) {
+      setError(err.response?.data?.message || t('failToDownloadReport'));
+    }
+  };
 
   const fetchSummaryData = async () => {
     try {
@@ -104,9 +120,11 @@ const ReportPage = () => {
       if (summaryData) {
         setTotalResponses(summaryData.totalResponses);
         setAverageRating(summaryData.averageRating);
+        setRatingStandardDeviation(summaryData.ratingStandardDeviation);
       } else {
         setTotalResponses(0);
         setAverageRating(null);
+        setRatingStandardDeviation(null);
       }
     } catch (err) {
       console.error("Error fetching summary data:", err);
@@ -259,6 +277,15 @@ const ReportPage = () => {
                 </Paper>
               </Grid>
             )}
+            {ratingStandardDeviation !== null && (
+              <Grid item xs={12} sm={6}>
+                <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
+                  <Typography variant="body1">
+                    {t('ratingStandardDeviation')}: <strong>{ratingStandardDeviation.toFixed(2)}</strong>
+                  </Typography>
+                </Paper>
+              </Grid>
+            )}
           </Grid>
         </Box>
       </Paper>
@@ -306,7 +333,16 @@ const ReportPage = () => {
                     <TableCell>{response.language}</TableCell>
                     <TableCell>{new Date(response.responseDate).toLocaleString()}</TableCell>
                     <TableCell>{response.guestIdentifier || t('notApplicable')}</TableCell>
-                    <TableCell>{response.freeTextFeedback ? `${response.freeTextFeedback.substring(0, 50)}...` : t('notApplicable')}</TableCell>
+                    <TableCell>
+                      <Box display="flex" alignItems="center" justifyContent="space-between">
+                        <Typography variant="body2" sx={{ flexGrow: 1 }}>
+                          {response.freeTextFeedback ? `${response.freeTextFeedback.substring(0, 50)}...` : t('notApplicable')}
+                        </Typography>
+                        <IconButton onClick={() => handleDownloadSingle(response)} size="small">
+                          <DownloadIcon />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
                   </TableRow>
                   <TableRow>
                     <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>

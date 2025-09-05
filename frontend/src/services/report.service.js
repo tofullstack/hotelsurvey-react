@@ -71,6 +71,18 @@ const ReportService = {
       console.error('Error downloading report:', error.response?.data || error.message);
       throw error;
     }
+  },
+
+  downloadSingleReport: async (id) => {
+    try {
+      const response = await api.get(`${REPORTS_BASE_URL}/download/response/${id}`, { 
+        responseType: 'blob' 
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error downloading single report:', error.response?.data || error.message);
+      throw error;
+    }
   }
 };
 
