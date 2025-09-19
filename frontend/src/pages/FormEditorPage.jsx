@@ -1,12 +1,25 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import FormService from "../services/form.service";
-import { useTranslation, Trans } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from 'react-router-dom';
+import {
+  DndContext,
+  closestCenter,
+  useSensor,
+  useSensors,
+  PointerSensor,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import SortableAccordion from "../components/SortableAccordion.jsx"; 
 
 import {
   Container,
   Box,
+  IconButton,
   Typography,
   TextField,
   FormControl,
@@ -17,9 +30,6 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
-  Card,
-  CardContent,
-  IconButton,
   CircularProgress,
   Alert,
   Grid,
@@ -29,7 +39,6 @@ import {
   Link, 
 } from "@mui/material";
 import {
-  Delete as DeleteIcon,
   Add as AddIcon,
   Save as SaveIcon,
   Close as CloseIcon,
@@ -81,6 +90,7 @@ const FormEditorPage = () => {
   const [isNewForm, setIsNewForm] = useState(true);
   const [companies, setCompanies] = useState([]);
   const [conditionalForms, setConditionalForms] = useState([]);
+  const [expanded, setExpanded] = useState(false); // New state for accordion
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -101,6 +111,7 @@ const FormEditorPage = () => {
           const data = await FormService.getFormById(formId);
           const formattedQuestions = data.questions.map((q) => ({
             ...q,
+            id: q.id || `temp-${Date.now() + Math.random()}`,
             options: Array.isArray(q.options) ? q.options.join(", ") : "",
             translations:
               Array.isArray(q.translations) && q.translations.length > 0
@@ -113,6 +124,9 @@ const FormEditorPage = () => {
             triggers: data.triggers || [],
           });
           setLoading(false);
+          if (formattedQuestions.length > 0) {
+            setExpanded(formattedQuestions[0].id); // Expand the first question by default
+          }
         } catch (err) {
           setError(
             err.response?.data?.message ||
@@ -143,6 +157,10 @@ const FormEditorPage = () => {
     };
     fetchConditionalForms();
   }, [formData.companyId]);
+
+  const handleAccordionChange = (panelId) => (event, isExpanded) => {
+    setExpanded(isExpanded ? panelId : false);
+  };
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -192,10 +210,20 @@ const FormEditorPage = () => {
   const handleTriggerChange = (triggerIndex, e) => {
     const { name, value } = e.target;
     const newTriggers = [...formData.triggers];
-    newTriggers[triggerIndex] = {
-      ...newTriggers[triggerIndex],
-      [name]: value,
-    };
+    
+    // Lógica para preencher o triggerValue automaticamente
+    if (name === "targetSectionId") {
+        newTriggers[triggerIndex] = {
+            ...newTriggers[triggerIndex],
+            [name]: value,
+            triggerValue: "1,2,3" // Valor fixo
+        };
+    } else {
+        newTriggers[triggerIndex] = {
+            ...newTriggers[triggerIndex],
+            [name]: value,
+        };
+    }
     setFormData((prev) => ({ ...prev, triggers: newTriggers }));
   };
 
@@ -219,12 +247,13 @@ const FormEditorPage = () => {
   };
 
   const addQuestion = () => {
+    const newQuestionId = `temp-${Date.now()}`;
     setFormData((prev) => ({
       ...prev,
       questions: [
         ...prev.questions,
         {
-          id: `temp-${Date.now()}`,
+          id: newQuestionId,
           label: "",
           type: "TEXT",
           mandatory: false,
@@ -234,6 +263,7 @@ const FormEditorPage = () => {
         },
       ],
     }));
+    setExpanded(newQuestionId); // Expand the new question
   };
 
   const removeQuestion = (index) => {
@@ -247,6 +277,7 @@ const FormEditorPage = () => {
       questions: newQuestions,
       triggers: newTriggers,
     }));
+    setExpanded(false); // Collapse all after removal
   };
 
   const addTranslation = (questionIndex) => {
@@ -353,6 +384,31 @@ const FormEditorPage = () => {
     }
   };
 
+  const onDragEnd = (event) => {
+    const { active, over } = event;
+    if (active.id !== over.id) {
+      const oldIndex = formData.questions.findIndex((q) => q.id === active.id);
+      const newIndex = formData.questions.findIndex((q) => q.id === over.id);
+
+      const newQuestions = [...formData.questions];
+      const [reorderedItem] = newQuestions.splice(oldIndex, 1);
+      newQuestions.splice(newIndex, 0, reorderedItem);
+
+      setFormData((prev) => ({
+        ...prev,
+        questions: newQuestions,
+      }));
+    }
+  };
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
+
   if (loading) {
     return (
       <Box sx={{ display: "flex", justifyContent: "center", mt: 5 }}>
@@ -391,7 +447,7 @@ const FormEditorPage = () => {
         </Alert>
       )}
 
-      <Box component={Paper} elevation={3} sx={{ p: { xs: 2, md: 4 } }}>
+      <Paper elevation={3} sx={{ p: { xs: 2, md: 4 } }}>
         <Box component="form" onSubmit={handleSubmit}>
           <Typography variant="h5" component="h2" mb={3} fontWeight="bold">
             {t("geralInformation")}
@@ -495,180 +551,30 @@ const FormEditorPage = () => {
             {t("menu_form_questions")}
           </Typography>
 
-          {formData.questions.map((q, index) => (
-            <Card
-              key={q.id}
-              sx={{
-                mb: 3,
-                boxShadow: 1,
-                border: "1px solid #e0e0e0",
-              }}
-            >
-              <CardContent>
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    mb: 2,
-                    pb: 1,
-                    borderBottom: "1px solid #f0f0f0",
-                  }}
-                >
-                  <Typography variant="h6">{t("menu_form_question")} {index + 1}</Typography>
-                  <IconButton
-                    onClick={() => removeQuestion(index)}
-                    color="error"
-                    aria-label="remove question"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
-                </Box>
-
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={8}>
-                    <TextField
-                      fullWidth
-                      label={t("menu_form_question_title")}
-                      name="label"
-                      value={q.label}
-                      onChange={(e) => handleQuestionChange(index, e)}
-                      required
-                    />
-                  </Grid>
-                  <Grid item xs={12} sm={4}>
-                    <FormControl fullWidth>
-                      <InputLabel id={`type-label-${index}`}>{t("menu_form_question_type")}</InputLabel>
-                      <Select
-                        labelId={`type-label-${index}`}
-                        name="type"
-                        value={q.type}
-                        label={t("menu_form_question_type")}
-                        onChange={(e) => handleQuestionChange(index, e)}
-                      >
-                        <MenuItem value="TEXT">{t("menu_form_question_option_text")}</MenuItem>
-                        <MenuItem value="CHOICE">{t("menu_form_question_option_multiple_choice")}</MenuItem>
-                        <MenuItem value="YES_NO">{t("menu_form_question_option_single_choice")}</MenuItem>
-                        <MenuItem value="SCALE">{t("menu_form_question_option_scale")}</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  {(q.type === "CHOICE" || q.type === "SCALE") && (
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        label={t("menu_form_question_option_scale_1_to_5")}
-                        name="options"
-                        value={q.options}
-                        onChange={(e) => handleQuestionChange(index, e)}
-                        disabled={q.type === "SCALE"}
-                      />
-                    </Grid>
-                  )}
-                  <Grid item xs={12}>
-                    <FormGroup row>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={!!q.mandatory}
-                            onChange={(e) => handleQuestionChange(index, e)}
-                            name="mandatory"
-                          />
-                        }
-                        label={t("menu_form_question_required")}
-                      />
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={!!q.deniable}
-                            onChange={(e) => handleQuestionChange(index, e)}
-                            name="deniable"
-                          />
-                        }
-                        label={t("menu_form_question_deniable")}
-                      />
-                    </FormGroup>
-                  </Grid>
-                </Grid>
-
-                <Box
-                  mt={3}
-                  p={2}
-                  sx={{
-                    border: "1px dashed #bdbdbd",
-                    borderRadius: "4px",
-                    backgroundColor: "grey.50",
-                  }}
-                >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      mb: 2,
-                    }}
-                  >
-                    <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                      {t("menu_form_question_translation_title")}
-                    </Typography>
-                    <Button
-                      onClick={() => addTranslation(index)}
-                      startIcon={<AddIcon />}
-                      size="small"
-                    >
-                      {t("menu_form_add")}
-                    </Button>
-                  </Box>
-                  {q.translations.map((translation, tIndex) => (
-                    <Grid container spacing={2} key={tIndex} sx={{ mb: 2 }}>
-                      <Grid item xs={12} sm={5}>
-                        <FormControl fullWidth>
-                          <InputLabel>{t("menu_form_questions_translation_language")}</InputLabel>
-                          <Select
-                            name="language"
-                            value={translation.language}
-                            onChange={(e) => handleTranslationChange(index, tIndex, e)}
-                            label={t("menu_form_questions_translation_language")}
-                          >
-                            {baseLanguages.map((langCode) => (
-                              <MenuItem key={langCode} value={langCode}>
-                                {languageNames[langCode]}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <TextField
-                          fullWidth
-                          label={t("translatedTitle")}
-                          name="label"
-                          value={translation.label}
-                          onChange={(e) =>
-                            handleTranslationChange(index, tIndex, e)
-                          }
-                        />
-                      </Grid>
-                      <Grid
-                        item
-                        xs={12}
-                        sm={1}
-                        sx={{ display: "flex", alignItems: "center" }}
-                      >
-                        <IconButton
-                          onClick={() => removeTranslation(index, tIndex)}
-                          color="error"
-                          aria-label="remove translation"
-                        >
-                          <CloseIcon />
-                        </IconButton>
-                      </Grid>
-                    </Grid>
-                  ))}
-                </Box>
-              </CardContent>
-            </Card>
-          ))}
+          <DndContext 
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={onDragEnd}
+          >
+            <SortableContext items={formData.questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
+              {formData.questions.map((q, index) => (
+                <SortableAccordion 
+                  key={q.id}
+                  question={q}
+                  index={index}
+                  expanded={expanded === q.id}
+                  onAccordionChange={handleAccordionChange(q.id)}
+                  handleQuestionChange={handleQuestionChange}
+                  handleTranslationChange={handleTranslationChange}
+                  addTranslation={addTranslation}
+                  removeTranslation={removeTranslation}
+                  removeQuestion={removeQuestion}
+                  formData={formData}
+                  t={t}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
 
           <Button
             variant="outlined"
@@ -707,7 +613,7 @@ const FormEditorPage = () => {
 
             {formData.triggers.map((trigger, index) => (
               <Grid container spacing={2} key={index} sx={{ mb: 2, mt: 1 }}>
-                <Grid item xs={12} sm={4}>
+                <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>{t("triggerQuestion")}</InputLabel>
                     <Select
@@ -729,15 +635,6 @@ const FormEditorPage = () => {
                         ))}
                     </Select>
                   </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={2}>
-                  <TextField
-                    fullWidth
-                    label={t("triggerValue")}
-                    name="triggerValue"
-                    value={trigger.triggerValue}
-                    onChange={(e) => handleTriggerChange(index, e)}
-                  />
                 </Grid>
                 <Grid item xs={12} sm={5}>
                   <FormControl fullWidth>
@@ -784,20 +681,20 @@ const FormEditorPage = () => {
                 </Typography>
               )}
           </Box>
-
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
-            sx={{ mt: 3, py: 1.5 }}
-          >
-            {isNewForm ? t("createForm") : t("saveChanges")}
-          </Button>
+        
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="info"
+              size="large"
+              startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
+            >
+              {isNewForm ? t("createForm") : t("saveChanges")}
+            </Button>
+          </Box>
         </Box>
-      </Box>
+      </Paper>
     </Container>
   );
 };
