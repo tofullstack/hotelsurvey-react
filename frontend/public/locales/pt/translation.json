@@ -212,6 +212,11 @@
     "filterType": "Filtrar Tipo",
     "allTypes": "Todos",
     "menu_item_user_management_admin": "Administrador",
-    "menu_item_user_management_user": "Usuário Comum"
+    "menu_item_user_management_user": "Usuário Comum",
+    "loginWelcome": "Bem Vindo",
+    "login_field_login": "Login",
+    "login_field_password": "Senha",
+    "login_button_submit": "Entrar",
+    "login_error_credentials": "Falha no login. Verifique suas credenciais."
 
 }

@@ -212,7 +212,12 @@
     "filterType": "Filter Type",
     "allTypes": "All",
     "menu_item_user_management_admin": "Admin",
-    "menu_item_user_management_user": "Common User"
+    "menu_item_user_management_user": "Common User",
+    "loginWelcome": "Welcome",
+    "login_field_login": "Login",
+    "login_field_password": "Password",
+    "login_button_submit": "Sign In",
+    "login_error_credentials": "Login failed. Please check your credentials."
 
 
     

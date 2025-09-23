@@ -125,7 +125,7 @@ const FormEditorPage = () => {
           });
           setLoading(false);
           if (formattedQuestions.length > 0) {
-            setExpanded(formattedQuestions[0].id); // Expand the first question by default
+            setExpanded(formattedQuestions[0].id);
           }
         } catch (err) {
           setError(
@@ -211,12 +211,11 @@ const FormEditorPage = () => {
     const { name, value } = e.target;
     const newTriggers = [...formData.triggers];
     
-    // Lógica para preencher o triggerValue automaticamente
     if (name === "targetSectionId") {
         newTriggers[triggerIndex] = {
             ...newTriggers[triggerIndex],
             [name]: value,
-            triggerValue: "1,2,3" // Valor fixo
+            triggerValue: "1,2,3" 
         };
     } else {
         newTriggers[triggerIndex] = {
@@ -263,7 +262,7 @@ const FormEditorPage = () => {
         },
       ],
     }));
-    setExpanded(newQuestionId); // Expand the new question
+    setExpanded(newQuestionId); 
   };
 
   const removeQuestion = (index) => {
@@ -277,7 +276,7 @@ const FormEditorPage = () => {
       questions: newQuestions,
       triggers: newTriggers,
     }));
-    setExpanded(false); // Collapse all after removal
+    setExpanded(false);
   };
 
   const addTranslation = (questionIndex) => {

@@ -211,7 +211,12 @@
     "filterType": "Filtrar Tipo",
     "allTypes": "Todos",
     "menu_item_user_management_admin": "Administrador",
-    "menu_item_user_management_user": "Usuario Común"
+    "menu_item_user_management_user": "Usuario Común",
+    "loginWelcome": "Bienvenido",
+    "login_field_login": "Usuario",
+    "login_field_password": "Contraseña",
+    "login_button_submit": "Iniciar Sesión",
+    "login_error_credentials": "Error de inicio de sesión. Verifique sus credenciales."
 
 
 }
