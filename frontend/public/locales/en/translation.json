@@ -217,7 +217,11 @@
     "login_field_login": "Login",
     "login_field_password": "Password",
     "login_button_submit": "Sign In",
-    "login_error_credentials": "Login failed. Please check your credentials."
+    "login_error_credentials": "Login failed. Please check your credentials.",
+    "menu_form_question_option_multiple_choice_helper": "Allow multiple options selection",
+    "menu_form_question_option_placeholder":"Type the option and press Enter to add more."
+
+    
 
 
     

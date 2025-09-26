@@ -1,4 +1,4 @@
-// services/conditional.trigger.service.js
+
 import api from './api';
 
 const TRIGGER_BASE_URL = '/triggers';
@@ -16,5 +16,7 @@ const ConditionalTriggerService = {
     }
   },
 };
+
+
 
 export default ConditionalTriggerService;

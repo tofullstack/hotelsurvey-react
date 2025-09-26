@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { useState, useEffect } from "react";
 import { styled } from '@mui/material/styles';
 import ArrowForwardIosSharpIcon from '@mui/icons-material/ArrowForwardIosSharp';
 import MuiAccordion from '@mui/material/Accordion';
@@ -13,6 +13,7 @@ import { Delete as DeleteIcon, Add as AddIcon, DragIndicator as DragIndicatorIco
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useTranslation } from 'react-i18next';
+import Chip from '@mui/material/Chip';
 
 const Accordion = styled((props) => (
   <MuiAccordion disableGutters elevation={0} square {...props} />
@@ -68,6 +69,36 @@ const SortableAccordion = ({ question, index, expanded, onAccordionChange, handl
   const { t } = useTranslation();
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: question.id });
   
+  // Estado para os chips de opções de escolha
+  const [chipOptions, setChipOptions] = useState(question.type === 'CHOICE' && question.options ? question.options.split(', ').filter(opt => opt) : []);
+  const [newOption, setNewOption] = useState('');
+  
+  // Sincroniza o estado de chips com o estado global apenas para tipo CHOICE
+  useEffect(() => {
+    if (question.type === 'CHOICE') {
+      handleQuestionChange(index, { target: { name: 'options', value: chipOptions.join(', ') } });
+    }
+  }, [chipOptions, question.type]);
+
+  // Sincroniza o estado de chips quando a propriedade question.options muda
+  useEffect(() => {
+    if (question.type === 'CHOICE' && question.options) {
+      setChipOptions(question.options.split(', ').filter(opt => opt));
+    }
+  }, [question.options, question.type]);
+
+  const handleAddChip = (e) => {
+    if (e.key === 'Enter' && newOption.trim() !== '') {
+      e.preventDefault();
+      setChipOptions([...chipOptions, newOption.trim()]);
+      setNewOption('');
+    }
+  };
+
+  const handleDeleteChip = (chipToDelete) => () => {
+    setChipOptions((chips) => chips.filter((chip) => chip !== chipToDelete));
+  };
+  
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -80,6 +111,45 @@ const SortableAccordion = ({ question, index, expanded, onAccordionChange, handl
       return `${label.substring(0, 30)}...`;
     }
     return label || `${t("menu_form_question")} ${index + 1}`;
+  };
+
+  const renderOptionsInput = () => {
+    if (question.type === "CHOICE") {
+      return (
+        <Grid item xs={12}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, my: 1 }}>
+            {chipOptions.map((data, chipIndex) => (
+              <Chip
+                key={chipIndex}
+                label={data}
+                onDelete={handleDeleteChip(data)}
+              />
+            ))}
+          </Box>
+          <TextField
+            fullWidth
+            label={t("menu_form_question_option_multiple_choice_helper")}
+            value={newOption}
+            onChange={(e) => setNewOption(e.target.value)}
+            onKeyDown={handleAddChip}
+            placeholder={t("menu_form_question_option_placeholder")}
+          />
+        </Grid>
+      );
+    } else if (question.type === "SCALE") {
+      return (
+        <Grid item xs={12}>
+          <TextField
+            fullWidth
+            label={t("menu_form_question_option_scale_1_to_5")}
+            name="options"
+            value={question.options || "1, 2, 3, 4, 5"}
+            disabled
+          />
+        </Grid>
+      );
+    }
+    return null;
   };
 
   return (
@@ -134,18 +204,7 @@ const SortableAccordion = ({ question, index, expanded, onAccordionChange, handl
                 </Select>
               </FormControl>
             </Grid>
-            {(question.type === "CHOICE" || question.type === "SCALE") && (
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  label={t("menu_form_question_option_scale_1_to_5")}
-                  name="options"
-                  value={question.options}
-                  onChange={(e) => handleQuestionChange(index, e)}
-                  disabled={question.type === "SCALE"}
-                />
-              </Grid>
-            )}
+            {renderOptionsInput()}
             <Grid item xs={12}>
               <FormGroup row>
                 <FormControlLabel

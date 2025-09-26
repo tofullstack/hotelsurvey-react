@@ -135,62 +135,53 @@ const SurveyForm = ({ formId, language }) => {
     fetchSurvey();
   }, [formId, selectedLanguage, t]);
 
-  const handleAnswerChange = async (questionId, value) => {
-    const currentQuestion = surveyStructure.questions.find(q => q.id === questionId);
-    if (!currentQuestion) return;
+const handleAnswerChange = async (questionId, value) => {
+  const currentQuestion = surveyStructure.questions.find(q => q.id === questionId);
+  if (!currentQuestion) return;
 
-    setAllAnswers(prev => ({
+  setAllAnswers(prev => ({
       ...prev,
       [questionId]: {
-        value: value,
-        surveySectionId: currentQuestion.surveySectionId 
+          value: value,
+          surveySectionId: currentQuestion.surveySectionId
       }
-    }));
+  }));
 
-    if (currentQuestion && currentQuestion.type === 'SCALE' && value <= 3) {
-      try {
-        const conditionalForms = await ConditionalTriggerService.getConditionalForms(
+  try {
+      const conditionalForms = await ConditionalTriggerService.getConditionalForms( 
           questionId,
-          value.toString(), 
+          value,//teste usando value sem toString()
           selectedLanguage
-        );
+      );
 
-        if (conditionalForms && conditionalForms.length > 0) {
+      if (conditionalForms && conditionalForms.length > 0) {
           setIsModalOpen(true);
           setConditionalForm(conditionalForms[0]);
 
           const initialConditionalAnswers = {};
           conditionalForms[0].questions.forEach(q => initialConditionalAnswers[q.id] = "");
           setConditionalAnswers(initialConditionalAnswers);
-        } else {
+      } else {
+
           setTimeout(() => {
-            if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
-              setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-            } else {
-              setFormPhase('details');
-            }
+              if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
+                  setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+              } else {
+                  setFormPhase('details');
+              }
           }, 500);
-        }
-      } catch (err) {
-        console.error('error fetching conditional form:', err);
-        setTimeout(() => {
-          if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
-            setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-          } else {
-            setFormPhase('details');
-          }
-        }, 500);
       }
-    } else {
+  } catch (err) {
+      console.error('Error fetching conditional form:', err);
       setTimeout(() => {
-        if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
-          setCurrentQuestionIndex(prevIndex => prevIndex + 1);
-        } else {
-          setFormPhase('details');
-        }
+          if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
+              setCurrentQuestionIndex(prevIndex => prevIndex + 1);
+          } else {
+              setFormPhase('details');
+          }
       }, 500);
-    }
-  };
+  }
+};
 
   const handleConditionalAnswerChange = (questionId, value) => {
     setConditionalAnswers(prev => ({

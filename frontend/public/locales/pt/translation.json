@@ -217,6 +217,8 @@
     "login_field_login": "Login",
     "login_field_password": "Senha",
     "login_button_submit": "Entrar",
-    "login_error_credentials": "Falha no login. Verifique suas credenciais."
+    "login_error_credentials": "Falha no login. Verifique suas credenciais.",
+    "menu_form_question_option_multiple_choice_helper": "Permitir seleção de múltiplas opções",
+    "menu_form_question_option_placeholder": "Digite a opção e pressione Enter para adicionar mais"
 
 }

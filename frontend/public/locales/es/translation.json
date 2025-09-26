@@ -216,7 +216,9 @@
     "login_field_login": "Usuario",
     "login_field_password": "Contraseña",
     "login_button_submit": "Iniciar Sesión",
-    "login_error_credentials": "Error de inicio de sesión. Verifique sus credenciales."
+    "login_error_credentials": "Error de inicio de sesión. Verifique sus credenciales.",
+    "menu_form_question_option_multiple_choice_helper": "Permitir selección de múltiples opciones",
+    "menu_form_question_option_placeholder": "Escribe la opción y presiona Enter para añadir más"
 
 
 }

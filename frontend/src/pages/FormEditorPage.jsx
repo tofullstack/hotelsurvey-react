@@ -14,7 +14,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import SortableAccordion from "../components/SortableAccordion.jsx"; 
+import SortableAccordion from "../components/SortableAccordion.jsx";
 
 import {
   Container,
@@ -35,8 +35,8 @@ import {
   Grid,
   Paper,
   Divider,
-  Breadcrumbs, 
-  Link, 
+  Breadcrumbs,
+  Link,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -90,7 +90,7 @@ const FormEditorPage = () => {
   const [isNewForm, setIsNewForm] = useState(true);
   const [companies, setCompanies] = useState([]);
   const [conditionalForms, setConditionalForms] = useState([]);
-  const [expanded, setExpanded] = useState(false); // New state for accordion
+  const [expanded, setExpanded] = useState(false); 
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -210,18 +210,18 @@ const FormEditorPage = () => {
   const handleTriggerChange = (triggerIndex, e) => {
     const { name, value } = e.target;
     const newTriggers = [...formData.triggers];
-    
-    if (name === "targetSectionId") {
-        newTriggers[triggerIndex] = {
-            ...newTriggers[triggerIndex],
-            [name]: value,
-            triggerValue: "1,2,3" 
-        };
+
+    if (name === "questionId") {
+      newTriggers[triggerIndex] = {
+        ...newTriggers[triggerIndex],
+        [name]: value,
+        triggerValue: ""
+      };
     } else {
-        newTriggers[triggerIndex] = {
-            ...newTriggers[triggerIndex],
-            [name]: value,
-        };
+      newTriggers[triggerIndex] = {
+        ...newTriggers[triggerIndex],
+        [name]: value,
+      };
     }
     setFormData((prev) => ({ ...prev, triggers: newTriggers }));
   };
@@ -262,7 +262,7 @@ const FormEditorPage = () => {
         },
       ],
     }));
-    setExpanded(newQuestionId); 
+    setExpanded(newQuestionId);
   };
 
   const removeQuestion = (index) => {
@@ -418,9 +418,9 @@ const FormEditorPage = () => {
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
-      
+
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
+        <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Link underline="hover" color="inherit" href="/admin/forms">
           {t("formsTitle")}
@@ -550,14 +550,14 @@ const FormEditorPage = () => {
             {t("menu_form_questions")}
           </Typography>
 
-          <DndContext 
+          <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragEnd={onDragEnd}
           >
             <SortableContext items={formData.questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
               {formData.questions.map((q, index) => (
-                <SortableAccordion 
+                <SortableAccordion
                   key={q.id}
                   question={q}
                   index={index}
@@ -610,63 +610,102 @@ const FormEditorPage = () => {
               {t("addTrigger")}
             </Button>
 
-            {formData.triggers.map((trigger, index) => (
-              <Grid container spacing={2} key={index} sx={{ mb: 2, mt: 1 }}>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>{t("triggerQuestion")}</InputLabel>
-                    <Select
-                      name="questionId"
-                      value={trigger.questionId}
-                      onChange={(e) => handleTriggerChange(index, e)}
-                      label={t("triggerQuestion")}
+            {formData.triggers.map((trigger, index) => {
+              const selectedQuestion = formData.questions.find(q => q.id === trigger.questionId);
+              const isChoiceQuestion = selectedQuestion?.type === 'CHOICE';
+              const isScaleQuestion = selectedQuestion?.type === 'SCALE';
+
+              return (
+                <Grid container spacing={2} key={index} sx={{ mb: 2, mt: 1 }}>
+                  <Grid item xs={12} sm={4}>
+                    <FormControl fullWidth>
+                      <InputLabel>{t("triggerQuestion")}</InputLabel>
+                      <Select
+                        name="questionId"
+                        value={trigger.questionId}
+                        onChange={(e) => handleTriggerChange(index, e)}
+                        label={t("triggerQuestion")}
+                      >
+                        {formData.questions
+                          .filter((q) => q.type !== "TEXT" && q.type !== "YES_NO")
+                          .map((q) => (
+                            <MenuItem key={q.id} value={q.id}>
+                              {q.label ||
+                                `${t("question")} ${formData.questions.findIndex(
+                                  (item) => item.id === q.id
+                                ) + 1
+                                }`}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={4}>
+                    {isChoiceQuestion || isScaleQuestion ? (
+                      <FormControl fullWidth>
+                        <InputLabel>{t("triggerValue")}</InputLabel>
+                        <Select
+                          name="triggerValue"
+                          value={trigger.triggerValue || ""}
+                          onChange={(e) => handleTriggerChange(index, e)}
+                          label={t("triggerValue")}
+                          required
+                        >
+                          {isChoiceQuestion && selectedQuestion.options.split(",").map((opt, i) => (
+                            <MenuItem key={i} value={opt.trim()}>{opt.trim()}</MenuItem> 
+                          ))}
+                          {isScaleQuestion && ["1", "2", "3", "4", "5"].map(val => (
+                            <MenuItem key={val} value={val}>{val}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    ) : (
+                      <TextField
+                        fullWidth
+                        label={t("triggerValue")}
+                        name="triggerValue"
+                        value={trigger.triggerValue}
+                        onChange={(e) => handleTriggerChange(index, e)}
+                        disabled
+                        placeholder={t("selectTriggerQuestionFirst")}
+                      />
+                    )}
+                  </Grid>
+
+                  <Grid item xs={12} sm={3}>
+                    <FormControl fullWidth>
+                      <InputLabel>{t("targetSection")}</InputLabel>
+                      <Select
+                        name="targetSectionId"
+                        value={trigger.targetSectionId}
+                        onChange={(e) => handleTriggerChange(index, e)}
+                        label={t("targetSection")}
+                      >
+                        {conditionalForms
+                          .filter((form) =>
+                            isNewForm ? true : form.id !== formId
+                          )
+                          .map((form) => (
+                            <MenuItem key={form.id} value={form.id}>
+                              {form.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={1}>
+                    <IconButton
+                      onClick={() => removeTrigger(index)}
+                      color="error"
+                      aria-label="remove trigger"
                     >
-                      {formData.questions
-                        .filter((q) => q.type !== "TEXT")
-                        .map((q) => (
-                          <MenuItem key={q.id} value={q.id}>
-                            {q.label ||
-                              `${t("question")} ${formData.questions.findIndex(
-                                (item) => item.id === q.id
-                              ) + 1
-                              }`}
-                          </MenuItem>
-                        ))}
-                    </Select>
-                  </FormControl>
+                      <CloseIcon />
+                    </IconButton>
+                  </Grid>
                 </Grid>
-                <Grid item xs={12} sm={5}>
-                  <FormControl fullWidth>
-                    <InputLabel>{t("targetSection")}</InputLabel>
-                    <Select
-                      name="targetSectionId"
-                      value={trigger.targetSectionId}
-                      onChange={(e) => handleTriggerChange(index, e)}
-                      label={t("targetSection")}
-                    >
-                      {conditionalForms
-                        .filter((form) =>
-                          isNewForm ? true : form.id !== formId
-                        )
-                        .map((form) => (
-                          <MenuItem key={form.id} value={form.id}>
-                            {form.name}
-                          </MenuItem>
-                        ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={1}>
-                  <IconButton
-                    onClick={() => removeTrigger(index)}
-                    color="error"
-                    aria-label="remove trigger"
-                  >
-                    <CloseIcon />
-                  </IconButton>
-                </Grid>
-              </Grid>
-            ))}
+              );
+            })}
             {!formData.companyId && (
               <Typography variant="caption" color="text.secondary">
                 {t("selectCompanyForConditionals")}
@@ -680,7 +719,7 @@ const FormEditorPage = () => {
                 </Typography>
               )}
           </Box>
-        
+
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, pt: 2, borderTop: '1px solid #e0e0e0' }}>
             <Button
               type="submit"
