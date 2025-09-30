@@ -52,7 +52,9 @@ const SurveyForm = ({ formId, language }) => {
   const [freeTextFeedback, setFreeTextFeedback] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [formPhase, setFormPhase] = useState('questions');
+  
+  const [formPhase, setFormPhase] = useState('identification'); 
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -79,19 +81,20 @@ const SurveyForm = ({ formId, language }) => {
     'zh-CN': t('zhLanguageName'),
   };
 
+  const showAlert = (message, severity) => {
+    setAlertInfo({ open: true, message, severity });
+    setTimeout(() => {
+      setAlertInfo({ ...alertInfo, open: false });
+    }, 3000); 
+  };
+
+
   useEffect(() => {
     if (!formId || !selectedLanguage) {
       setError(t("invalidFormUrl"));
       setLoading(false);
       return;
     }
-
-    const showAlert = (message, severity) => {
-      setAlertInfo({ open: true, message, severity });
-      setTimeout(() => {
-        setAlertInfo({ ...alertInfo, open: false });
-      }, 3000); // 3 segundos
-    };
 
     const fetchSurvey = async () => {
       try {
@@ -150,7 +153,7 @@ const handleAnswerChange = async (questionId, value) => {
   try {
       const conditionalForms = await ConditionalTriggerService.getConditionalForms( 
           questionId,
-          value,//teste usando value sem toString()
+          value,
           selectedLanguage
       );
 
@@ -167,7 +170,7 @@ const handleAnswerChange = async (questionId, value) => {
               if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
                   setCurrentQuestionIndex(prevIndex => prevIndex + 1);
               } else {
-                  setFormPhase('details');
+                  setFormPhase('final_feedback'); 
               }
           }, 500);
       }
@@ -177,7 +180,7 @@ const handleAnswerChange = async (questionId, value) => {
           if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
               setCurrentQuestionIndex(prevIndex => prevIndex + 1);
           } else {
-              setFormPhase('details');
+              setFormPhase('final_feedback'); 
           }
       }, 500);
   }
@@ -194,15 +197,11 @@ const handleAnswerChange = async (questionId, value) => {
     e.preventDefault();
   
     const areAllAnswered = conditionalForm.questions.every(q => {
-
       return !!conditionalAnswers[q.id];
     });
   
     if (!areAllAnswered) {
-      console.error("Please answer all questions in the conditional form.");
-      showAlert(err.response?.data?.message || t('messageConditionalForm'), 'error');
-
-
+      showAlert(t('messageConditionalForm'), 'error');
       return; 
     }
   
@@ -225,10 +224,22 @@ const handleAnswerChange = async (questionId, value) => {
       if (currentQuestionIndex < (surveyStructure?.questions?.length || 0) - 1) {
         setCurrentQuestionIndex(prevIndex => prevIndex + 1);
       } else {
-        setFormPhase('details');
+        setFormPhase('final_feedback');
       }
     }, 500);
   };
+
+  const handleIdentificationSubmit = (e) => {
+    e.preventDefault();
+
+    if (!guestIdentifier.trim()) {
+        showAlert(t('guestIdentifierRequired'), 'warning');
+        return;
+    }
+
+    setFormPhase('questions');
+  };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -272,7 +283,6 @@ const handleAnswerChange = async (questionId, value) => {
     }
     return (
       <Box component="form" onSubmit={handleConditionalSubmit} sx={{ textAlign: 'center' }}>
-        {/* <Typography variant="h5" sx={{ mb: 2 }}>{conditionalForm.name}</Typography> */}
         {conditionalForm.questions.map(q => (
           <QuestionComponent
             key={q.id}
@@ -282,6 +292,11 @@ const handleAnswerChange = async (questionId, value) => {
             language={selectedLanguage}
           />
         ))}
+        {alertInfo.open && alertInfo.severity === 'error' && (
+            <Alert severity="error" sx={{ mt: 2 }}>
+                {alertInfo.message}
+            </Alert>
+        )}
         <Button
           type="submit"
           variant="contained"
@@ -306,12 +321,52 @@ const handleAnswerChange = async (questionId, value) => {
       <Typography variant="h5">{t("thanksMessage")}</Typography></Box>);
     }
 
+    if (formPhase === 'identification') {
+      return (
+        <Card sx={{ mb: 4, boxShadow: 1 }}>
+          <CardHeader title={t("initialIdentification")} sx={{ backgroundColor: "primary.main", color: "primary.contrastText" }} />
+          <CardContent>
+            <Box component="form" onSubmit={handleIdentificationSubmit}>
+              <Typography variant="h6" sx={{ mb: 2 }}>{t("identifyYourselfToStart")}</Typography>
+              <TextField 
+                required
+                fullWidth 
+                margin="normal" 
+                label={t("indicator")} 
+                value={guestIdentifier} 
+                onChange={(e) => setGuestIdentifier(e.target.value)} 
+                InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} 
+                helperText={t('indicatorRequiredHelp')}
+              />
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary" 
+                size="large" 
+                fullWidth 
+                sx={{ mt: 3 }}
+                endIcon={<SendIcon />}
+              >
+                {t("startSurvey")}
+              </Button>
+              {alertInfo.open && alertInfo.severity === 'warning' && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                    {alertInfo.message}
+                </Alert>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+      );
+    }
+
     if (formPhase === 'questions') {
       const currentQuestion = surveyStructure?.questions?.[currentQuestionIndex];
       if (currentQuestion) {
         return (
           <Card key={surveyStructure.id} sx={{ mb: 4, boxShadow: 1 }}>
             <CardHeader
+              title={`${currentQuestionIndex + 1} / ${surveyStructure.questions.length}`}
               sx={{ backgroundColor: "primary.main", color: "primary.contrastText" }}
             />
             <CardContent>
@@ -330,16 +385,28 @@ const handleAnswerChange = async (questionId, value) => {
       }
     }
 
-    if (formPhase === 'details') {
+    if (formPhase === 'final_feedback') {
       return (
         <Box component="form" onSubmit={handleSubmit}>
           <Typography variant="h5" sx={{ mb: 2 }}>{t("additionalDetails")}</Typography>
-          <TextField fullWidth margin="normal" label={t("indicator")} value={guestIdentifier} onChange={(e) => setGuestIdentifier(e.target.value)} InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} />
           <TextField fullWidth multiline rows={4} margin="normal" label={t("additionalDetails")} inputProps={{ maxLength: 500 }} value={freeTextFeedback} onChange={(e) => setFreeTextFeedback(e.target.value)} placeholder={t("additionalDetailsPlaceholder")} InputProps={{ startAdornment: (<ChatIcon sx={{ mr: 1, color: "action.active" }} />) }} />
           <Typography variant="caption" color="text.secondary" sx={{ display: "flex", textAlign: "right" }}>{freeTextFeedback.length}/500 {t("characters")}</Typography>
-          <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>{t("submit")}</Button>
+          
+          {formPhase === 'submitting' ? (
+              <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /><Typography variant="body1" sx={{ ml: 2 }}>{t("submitting")}</Typography></Box>
+          ) : (
+              <Button type="submit" variant="contained" color="success" size="large" fullWidth sx={{ mt: 3 }} startIcon={<SendIcon />}>{t("submit")}</Button>
+          )}
+
         </Box>
       );
+    }
+    
+    if (formPhase === 'submitting') {
+        return <Box sx={{ display: "flex", justifyContent: "center", mt: 4 }}><CircularProgress /><Typography variant="body1" sx={{ ml: 2 }}>{t("submitting")}</Typography></Box>;
+    }
+    if (formPhase === 'error') {
+        return <Alert severity="error">{t("error")}: {error}</Alert>;
     }
 
     return null;
@@ -372,19 +439,9 @@ const handleAnswerChange = async (questionId, value) => {
         open={isModalOpen}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
+        disableEscapeKeyDown={true}
       >
         <Box sx={style}>
-          <IconButton
-            aria-label="close"
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              color: (theme) => theme.palette.grey[500],
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
           {renderConditionalForm()}
         </Box>
       </Modal>

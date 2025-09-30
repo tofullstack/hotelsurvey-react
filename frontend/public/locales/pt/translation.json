@@ -117,7 +117,7 @@
     "additionalDetails": "Detalhes Adicionais",
     "additionalDetailsPlaceholder": "Por favor, forneça detalhes adicionais sobre sua experiência.",
     "submit": "Enviar",
-    "indicator": "Seu indicador (Opcional): ",
+    "indicator": "Seu indicador:",
     "failToSubmitSurvey": "Falha ao enviar a pesquisa.",
     "placeholder_text": "Digite sua resposta...",
     "placeholder_select": "Selecione uma opção",
@@ -219,6 +219,15 @@
     "login_button_submit": "Entrar",
     "login_error_credentials": "Falha no login. Verifique suas credenciais.",
     "menu_form_question_option_multiple_choice_helper": "Permitir seleção de múltiplas opções",
-    "menu_form_question_option_placeholder": "Digite a opção e pressione Enter para adicionar mais"
+    "menu_form_question_option_placeholder": "Digite a opção e pressione Enter para adicionar mais",
+    "stars":"Estrelas",
+    "hearts":"Corações",
+    "emojis":"Emojis",
+    "scaleDisplayHint":"Escolha o ícone para esta classificação.",
+    "displayType":"Tipo de Exibição",
+    "identifyYourselfToStart":"Identifique-se para iniciar a pesquisa",
+    "initialIdentification":"Identificação Inicial",
+    "indicatorRequiredHelp":"Insira seu nome ou UH do quarto",
+    "startSurvey": "Iniciar Pesquisa"
 
 }

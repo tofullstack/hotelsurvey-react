@@ -116,7 +116,7 @@
     "additionalDetails": "Detalles Adicionales",
     "additionalDetailsPlaceholder": "Proporcione detalles adicionales aquí...",
     "submit": "Enviar",
-    "indicator": "Indicador (Opcional)",
+    "indicator": "Indicador: ",
     "ptLanguageName": "Portugués",
     "enLanguageName": "Inglés",
     "deLanguageName": "Alemán",
@@ -218,7 +218,16 @@
     "login_button_submit": "Iniciar Sesión",
     "login_error_credentials": "Error de inicio de sesión. Verifique sus credenciales.",
     "menu_form_question_option_multiple_choice_helper": "Permitir selección de múltiples opciones",
-    "menu_form_question_option_placeholder": "Escribe la opción y presiona Enter para añadir más"
+    "menu_form_question_option_placeholder": "Escribe la opción y presiona Enter para añadir más",
+    "stars": "Estrellas",
+    "hearts": "Corazones",
+    "emojis": "Emojis",
+    "displayType": "Tipo de Visualización",
+    "scaleDisplayHinter": "Selecciona cómo se mostrarán las opciones de escala",
+    "identifyYourselfToStart": "Identifícate para comenzar la encuesta",
+    "initialIdentification": "Identificación Inicial",
+    "indicatorRequiredHelp": "Ingrese su nombre o el número de habitación.",
+    "startSurvey": "Comenzar Encuesta"
 
 
 }

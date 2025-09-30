@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Link as RouterLink } from 'react-router-dom';
 import Pagination from '@mui/material/Pagination';
 import Modal from '@mui/material/Modal';
-import PreviewModal from '../components/PreviewModal';
+import PreviewModal from '../components/PreviewModal'; // O componente PreviewModal deve ser criado/editado
 import { useTranslation, Trans } from "react-i18next";
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
@@ -46,7 +46,7 @@ import {
 
 
 const AdminFormsPage = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const [forms, setForms] = useState([]);
@@ -166,18 +166,17 @@ const AdminFormsPage = () => {
   };
 
   const [anchorEl, setAnchorEl] = useState(null);
-  const [currentFormId, setCurrentFormId] = useState(null);
+  const [currentForm, setCurrentForm] = useState(null);
   const open = Boolean(anchorEl);
-  const handleMenuClick = (event, formId) => {
+
+  const handleMenuClick = (event, form) => {
     setAnchorEl(event.currentTarget);
-    setCurrentFormId(formId);
+    setCurrentForm(form);
   };
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setCurrentFormId(null);
+    setCurrentForm(null);
   };
-
-  const currentForm = forms.find(form => form.id === currentFormId);
 
   if (loading) {
     return (
@@ -287,15 +286,34 @@ const AdminFormsPage = () => {
                         variant="text"
                       />
                     </TableCell>
+                    
                     <TableCell align="right" >
                       <Stack direction="row" spacing={1} justifyContent="flex-end" flexWrap="wrap">
+                        
+                        <IconButton
+                            aria-label={t("edit")}
+                            onClick={() => navigate(`/admin/forms/edit/${form.id}`)}
+                            size="small"
+                        >
+                            <EditIcon fontSize="small" />
+                        </IconButton>
+                        
+                        <IconButton
+                            aria-label={t("preview")}
+                            onClick={() => handleOpenPreviewModal(form.id)}
+                            size="small"
+                            color="info" 
+                        >
+                            <VisibilityIcon fontSize="small" />
+                        </IconButton>
+                        
                         <IconButton
                           aria-label="more"
-                          id="long-button"
-                          aria-controls={open ? 'long-menu' : undefined}
-                          aria-expanded={open ? 'true' : undefined}
+                          id={`long-button-${form.id}`}
+                          aria-controls={open && currentForm?.id === form.id ? 'long-menu' : undefined}
+                          aria-expanded={open && currentForm?.id === form.id ? 'true' : undefined}
                           aria-haspopup="true"
-                          onClick={(e) => handleMenuClick(e, form.id)}
+                          onClick={(e) => handleMenuClick(e, form)}
                           size="small"
                         >
                           <MoreVertIcon />
@@ -312,7 +330,7 @@ const AdminFormsPage = () => {
       <Menu
         id="long-menu"
         MenuListProps={{
-          'aria-labelledby': 'long-button',
+          'aria-labelledby': currentForm ? `long-button-${currentForm.id}` : 'long-button-undefined',
         }}
         anchorEl={anchorEl}
         open={open}
@@ -326,18 +344,14 @@ const AdminFormsPage = () => {
       >
         {currentForm && (
           [
-            <MenuItem key="edit" onClick={() => {
-              navigate(`/admin/forms/edit/${currentForm.id}`);
-              handleMenuClose();
-            }}>
-              <EditIcon fontSize="small" sx={{ mr: 1 }} /> {t("edit")}
-            </MenuItem>,
-            <MenuItem key="preview" onClick={() => {
-              handleOpenPreviewModal(currentForm.id);
-              handleMenuClose();
-            }}>
-              <VisibilityIcon fontSize="small" sx={{ mr: 1 }} /> {t("preview")}
-            </MenuItem>,
+            // <MenuItem key="edit" onClick={() => {
+            //   navigate(`/admin/forms/edit/${currentForm.id}`);
+            //   handleMenuClose();
+            // }}>
+            //   <EditIcon fontSize="small" sx={{ mr: 1 }} /> {t("edit")}
+            // </MenuItem>,
+            
+
             <MenuItem key="qr" onClick={() => {
               handleGenerateQr(currentForm);
               handleOpenModal();
@@ -373,6 +387,7 @@ const AdminFormsPage = () => {
         />
       </Box>
 
+      
       <Modal
         open={openDeactivateModal}
         onClose={handleCloseDeactivateModal}
@@ -455,7 +470,6 @@ const AdminFormsPage = () => {
         formId={selectedFormId}
       />
 
-      {/* Adicione o componente de navegação inferior aqui */}
       <LanguageBottomNavigation />
     </Container>
   );

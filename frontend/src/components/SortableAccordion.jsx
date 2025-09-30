@@ -69,18 +69,15 @@ const SortableAccordion = ({ question, index, expanded, onAccordionChange, handl
   const { t } = useTranslation();
   const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: question.id });
   
-  // Estado para os chips de opções de escolha
   const [chipOptions, setChipOptions] = useState(question.type === 'CHOICE' && question.options ? question.options.split(', ').filter(opt => opt) : []);
   const [newOption, setNewOption] = useState('');
   
-  // Sincroniza o estado de chips com o estado global apenas para tipo CHOICE
   useEffect(() => {
     if (question.type === 'CHOICE') {
       handleQuestionChange(index, { target: { name: 'options', value: chipOptions.join(', ') } });
     }
   }, [chipOptions, question.type]);
 
-  // Sincroniza o estado de chips quando a propriedade question.options muda
   useEffect(() => {
     if (question.type === 'CHOICE' && question.options) {
       setChipOptions(question.options.split(', ').filter(opt => opt));
@@ -205,6 +202,35 @@ const SortableAccordion = ({ question, index, expanded, onAccordionChange, handl
               </FormControl>
             </Grid>
             {renderOptionsInput()}
+            {question.type === "SCALE" && (
+                <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth>
+                        <InputLabel id={`display-type-label-${question.id}`}>
+                            {t("displayType") || "Tipo de Exibição"}
+                        </InputLabel>
+                        <Select
+                            labelId={`display-type-label-${question.id}`}
+                            name="displayType" 
+                            value={question.displayType || "STARS"} 
+                            onChange={(e) => handleQuestionChange(index, e)}
+                            label={t("displayType") || "Tipo de Exibição"}
+                        >
+                            <MenuItem value="STARS">
+                                {t("stars") || "Estrelas"} ⭐
+                            </MenuItem>
+                            <MenuItem value="HEARTS">
+                                {t("hearts") || "Corações"} ❤️
+                            </MenuItem>
+                            <MenuItem value="EMOJIS">
+                                {t("emojis") || "Carinhas"} 🙂
+                            </MenuItem>
+                        </Select>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                            {t("scaleDisplayHint") || "Escolha o ícone para esta classificação."}
+                        </Typography>
+                    </FormControl>
+                </Grid>
+            )}
             <Grid item xs={12}>
               <FormGroup row>
                 <FormControlLabel

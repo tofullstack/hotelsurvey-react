@@ -116,7 +116,7 @@
     "additionalDetails": "Additional Details",
     "additionalDetailsPlaceholder": "Please provide any additional details or comments you may have.",
     "submit": "Submit",
-    "indicator": "Indicator (Optional): ",
+    "indicator": "Indicator: ",
     "failToSubmitSurvey": "Failed to submit survey.",
     "placeholder_text": "Type your answer...",
     "placeholder_select": "Select an option",
@@ -219,7 +219,16 @@
     "login_button_submit": "Sign In",
     "login_error_credentials": "Login failed. Please check your credentials.",
     "menu_form_question_option_multiple_choice_helper": "Allow multiple options selection",
-    "menu_form_question_option_placeholder":"Type the option and press Enter to add more."
+    "menu_form_question_option_placeholder":"Type the option and press Enter to add more.",
+    "stars":"Stars",
+    "hearts":"Hearts",
+    "emojis":"Emojis",
+    "displayType":"Display Type",
+    "scaleDisplayHint":"Choose how the scale options are displayed to users.",
+    "identifyYourselfToStart":"Identify yourself to start the survey",
+    "initialIdentification":"Initial Identification",
+    "indicatorRequiredHelp": "Please enter your name or room number.",
+    "startSurvey": "Start Survey"
 
     
 

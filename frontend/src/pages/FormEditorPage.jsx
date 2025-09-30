@@ -187,6 +187,7 @@ const FormEditorPage = () => {
         ...newQuestions[questionIndex],
         type: value,
         options: "1, 2, 3, 4, 5",
+        displayType: newQuestions[questionIndex].displayType || "STARS", 
       };
     } else {
       newQuestions[questionIndex] = {
@@ -257,6 +258,7 @@ const FormEditorPage = () => {
           type: "TEXT",
           mandatory: false,
           deniable: false,
+          displayType: "STARS", 
           options: "",
           translations: [{ language: "", label: "" }],
         },
@@ -355,6 +357,7 @@ const FormEditorPage = () => {
           deniable: q.deniable ?? false,
           options: formattedOptions,
           translations: filteredTranslations,
+          displayType: q.displayType, 
         };
       });
 
