@@ -20,9 +20,6 @@ import {
   TableCell,
   IconButton,
   Collapse,
-  List,
-  ListItem,
-  ListItemText,
   Stack,
   FormControl,
   InputLabel,
@@ -31,12 +28,27 @@ import {
   Pagination,
   Breadcrumbs,
   Link,
+  Tooltip, 
+  InputAdornment, 
 } from '@mui/material';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import SearchIcon from '@mui/icons-material/Search'; 
+import FilterListIcon from '@mui/icons-material/FilterList'; 
 import { Link as RouterLink } from 'react-router-dom';
 import DownloadIcon from '@mui/icons-material/Download';
+import RefreshIcon from '@mui/icons-material/Refresh'; // 💡 Importado o ícone de Rollback/Reset
+// Recharts Imports
+import { 
+    BarChart, 
+    Bar, 
+    XAxis, 
+    YAxis, 
+    CartesianGrid, 
+    Tooltip as RechartsTooltip, 
+    ResponsiveContainer 
+} from 'recharts';
 
 
 const languages = [
@@ -51,6 +63,15 @@ const languages = [
   { code: 'zh-CN', i18nKey: 'chinese' },
 ];
 
+const mockRatingDistribution = [
+    { name: '1 Estrela', count: 15 },
+    { name: '2 Estrelas', count: 25 },
+    { name: '3 Estrelas', count: 40 },
+    { name: '4 Estrelas', count: 60 },
+    { name: '5 Estrelas', count: 110 },
+];
+
+
 const ReportPage = () => {
   const { t } = useTranslation();
 
@@ -58,19 +79,29 @@ const ReportPage = () => {
   const [totalResponses, setTotalResponses] = useState(0);
   const [averageRating, setAverageRating] = useState(null);
   const [ratingStandardDeviation, setRatingStandardDeviation] = useState(null);
+  const [ratingDistribution, setRatingDistribution] = useState(mockRatingDistribution);
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filters, setFilters] = useState({
+  
+  // Estado inicial de filtros (todos vazios)
+  const initialFilterState = {
     serieEmpresa: '',
     language: '',
     startDate: '',
     endDate: ''
-  });
+  };
+
+  const [filterInputs, setFilterInputs] = useState(initialFilterState);
+  const [filters, setFilters] = useState(initialFilterState);
   const [open, setOpen] = useState({});
 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [rowsPerPage] = useState(5); 
   const [totalPages, setTotalPages] = useState(0);
+  
+  const [openAdvancedFilters, setOpenAdvancedFilters] = useState(false);
+
 
   const fetchPaginatedResponses = async () => {
     setLoading(true);
@@ -99,6 +130,7 @@ const ReportPage = () => {
       setLoading(false);
     }
   };
+
   const handleDownloadSingle = async (response) => {
     try {
       const data = await ReportService.downloadSingleReport(response.id);
@@ -114,9 +146,10 @@ const ReportPage = () => {
     }
   };
 
-  const fetchSummaryData = async () => {
+  const fetchSummaryAndDistribution = async () => {
     try {
       const summaryData = await ReportService.getReportSummary(filters);
+      
       if (summaryData) {
         setTotalResponses(summaryData.totalResponses);
         setAverageRating(summaryData.averageRating);
@@ -126,8 +159,11 @@ const ReportPage = () => {
         setAverageRating(null);
         setRatingStandardDeviation(null);
       }
+      setRatingDistribution(mockRatingDistribution); 
+
     } catch (err) {
       console.error("Error fetching summary data:", err);
+      setRatingDistribution(mockRatingDistribution); 
     }
   };
 
@@ -137,21 +173,36 @@ const ReportPage = () => {
   }, [page, rowsPerPage, filters]);
 
   useEffect(() => {
-    fetchSummaryData();
+    fetchSummaryAndDistribution();
   }, [filters]);
 
   const handleChangePage = (event, newPage) => {
     setPage(newPage - 1);
   };
 
-  const handleFilterChange = (e) => {
+  const handleFilterInputChange = (e) => {
     const { name, value } = e.target;
-    setFilters(prev => ({ ...prev, [name]: value }));
+    setFilterInputs(prev => ({ ...prev, [name]: value }));
   };
 
   const applyFilters = () => {
     setPage(0);
+    setFilters(filterInputs);
   };
+  
+  // 💡 FUNÇÃO PARA RESETAR TODOS OS FILTROS
+  const handleResetFilters = () => {
+      // 1. Resetar o estado de input para o valor inicial (vazio)
+      setFilterInputs(initialFilterState);
+      
+      // 2. Fechar o painel de filtros avançados
+      setOpenAdvancedFilters(false);
+      
+      // 3. Aplica os filtros resetados, forçando a busca
+      setPage(0);
+      setFilters(initialFilterState); // Isso dispara os useEffects
+  };
+
 
   const handleDownload = async (format) => {
     try {
@@ -167,8 +218,19 @@ const ReportPage = () => {
       setError(err.response?.data?.message || t('failToDownloadReport'));
     }
   };
+  
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      applyFilters();
+    }
+  };
+  
+  const handleRowClick = (responseId) => {
+      setOpen(prev => ({ ...prev, [responseId]: !prev[responseId] }));
+  }
 
-  if (loading) {
+
+  if (loading && responses.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
         <CircularProgress />
@@ -177,9 +239,10 @@ const ReportPage = () => {
     );
   }
 
-  if (error) {
+  if (error && responses.length === 0) {
     return <Alert severity="error" sx={{ my: 4 }}>{error}</Alert>;
   }
+
 
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}>
@@ -189,141 +252,265 @@ const ReportPage = () => {
         <Typography color="text.primary">{t("reportsTitle")}</Typography>
       </Breadcrumbs>
 
-      <Typography variant="h6" component="h1" align="center" mb={4}>
-        {t('reportsTitle')}
-      </Typography>
+      <Paper sx={{ p: 3, mb: 4, boxShadow: 'none', border: '1px solid #e0e0e0' }}>
+        
+        <Box mb={3} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" component="h1">
+            {t('reportsTitle')}
+          </Typography>
+          
+          <Stack direction="row" spacing={1}>
+            <Tooltip title={t('downloadPDF')}>
+              <Button size='medium' variant="contained" color="primary" onClick={() => handleDownload('pdf')}>
+                <FileDownloadIcon sx={{ mr: 1 }} /> PDF
+              </Button>
+            </Tooltip>
+            <Tooltip title={t('downloadXML')}>
+              <Button size='medium' variant="outlined" color="primary" onClick={() => handleDownload('xml')}>
+                <FileDownloadIcon sx={{ mr: 1 }} /> XML
+              </Button>
+            </Tooltip>
+          </Stack>
+        </Box>
+        
+        <Box sx={{ 
+            display: 'flex', 
+            justifyContent: 'flex-end', 
+            alignItems: 'center', 
+            gap: 1, 
+            mb: 3
+        }}>
+            
+            <Tooltip title={t('resetFilters') || "Resetar Filtros"}>
+                <IconButton 
+                    size="small" 
+                    aria-label="Reset Filters" 
+                    onClick={handleResetFilters}
+                    sx={{ border: '1px solid #e0e0e0' }}
+                >
+                    <RefreshIcon fontSize="small" /> 
+                </IconButton>
+          </Tooltip>
+           <Tooltip title={t('advancedFilters')}>
+            <IconButton
+              size="small"
+              aria-label="Filter"
+              onClick={() => setOpenAdvancedFilters(prev => !prev)}
+              sx={{
+                border: '1px solid #e0e0e0',
+                backgroundColor: openAdvancedFilters ? '#e3f2fd' : 'transparent',
+              }}
+            >
+              <FilterListIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
 
-      <Paper elevation={3} sx={{ p: { xs: 2, md: 4 }, mb: 4 }}>
-        {/* <Typography variant="h6" mb={3}>{t('filters')}</Typography> */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
             <TextField
-              fullWidth
-              label={t('companySeries')}
-              name="serieEmpresa"
-              value={filters.serieEmpresa}
-              onChange={handleFilterChange}
+                placeholder={t('companySeries')}
+                name="serieEmpresa"
+                value={filterInputs.serieEmpresa}
+                onChange={handleFilterInputChange}
+                onKeyDown={handleKeyDown}
+                variant="outlined"
+                size="small"
+                sx={{ 
+                    width: '300px',
+                    '& .MuiOutlinedInput-root': {
+                        height: 36, 
+                        paddingRight: '4px',
+                        borderRadius: '4px',
+                    },
+                }}
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                    ),
+                }}
             />
-          </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <FormControl fullWidth>
-              <InputLabel id="language-select-label">{t('language')}</InputLabel>
-              <Select
-                labelId="language-select-label"
-                id="language-select"
-                value={filters.language}
-                label={t('language')}
-                onChange={handleFilterChange}
-                name="language"
-              >
-                <MenuItem value="">
-                  <em>{t('none')}</em>
-                </MenuItem>
-                {languages.map((lang) => (
-                  <MenuItem key={lang.code} value={lang.code}>
-                    {t(lang.i18nKey)}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
 
-          <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              fullWidth
-              label={t('startDate')}
-              type="datetime-local"
-              name="startDate"
-              InputLabelProps={{ shrink: true }}
-              value={filters.startDate}
-              onChange={handleFilterChange}
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <TextField
-              fullWidth
-              label={t('endDate')}
-              type="datetime-local"
-              name="endDate"
-              InputLabelProps={{ shrink: true }}
-              value={filters.endDate}
-              onChange={handleFilterChange}
-            />
-          </Grid>
-          <Grid item xs={12} sx={{ textAlign: 'right' }}>
-            <Button size='small' color='info' variant="contained" onClick={applyFilters}>
-              {t('applyFilters')}
+
+            <Button 
+                size='small' 
+                color='primary' 
+                variant="contained" 
+                onClick={applyFilters}
+                startIcon={<SearchIcon />}
+            >
+                {t('applyFilters')}
             </Button>
-          </Grid>
-        </Grid>
+        </Box>
+
+        <Collapse in={openAdvancedFilters}>
+            <Box sx={{ p: 2, border: '1px solid #e0e0e0', borderRadius: 1, mb: 3, mt: -2, bgcolor: '#fafafa' }}>
+                <Typography variant="subtitle2" mb={2}>{t('dateAndLanguageFilters')}</Typography>
+                <Grid container spacing={2}>
+                    
+                    <Grid item xs={12} sm={6} md={4}>
+                        <FormControl fullWidth size="small">
+                        <InputLabel id="language-select-label">{t('language')}</InputLabel>
+                        <Select
+                            labelId="language-select-label"
+                            id="language-select"
+                            value={filterInputs.language}
+                            label={t('language')}
+                            onChange={handleFilterInputChange}
+                            name="language"
+                        >
+                            <MenuItem value="">
+                            <em>{t('none')}</em>
+                            </MenuItem>
+                            {languages.map((lang) => (
+                            <MenuItem key={lang.code} value={lang.code}>
+                                {t(lang.i18nKey)}
+                            </MenuItem>
+                            ))}
+                        </Select>
+                        </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={6} md={4}>
+                        <TextField
+                        fullWidth
+                        size="small"
+                        label={t('startDate')}
+                        type="datetime-local"
+                        name="startDate"
+                        InputLabelProps={{ shrink: true }}
+                        value={filterInputs.startDate}
+                        onChange={handleFilterInputChange}
+                        />
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6} md={4}>
+                        <TextField
+                        fullWidth
+                        size="small"
+                        label={t('endDate')}
+                        type="datetime-local"
+                        name="endDate"
+                        InputLabelProps={{ shrink: true }}
+                        value={filterInputs.endDate}
+                        onChange={handleFilterInputChange}
+                        />
+                    </Grid>
+                </Grid>
+            </Box>
+        </Collapse>
+
 
         <Box sx={{ mt: 4, pt: 2, borderTop: '1px solid #e0e0e0' }}>
           <Typography variant="h6" mb={2}>{t('reportSummary')}</Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6}>
-              <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
-                <Typography variant="body1">
-                  {t('totalResponses')}: <strong>{totalResponses}</strong>
-                </Typography>
-              </Paper>
+          <Grid container spacing={4}>
+            
+            <Grid item xs={12} md={5}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6} md={12}>
+                      <Paper sx={{ p: 2, border: '1px solid #e0e0e0', bgcolor: 'background.paper' }}>
+                        <Typography variant="body2" color="text.secondary">{t('totalResponses')}</Typography>
+                        <Typography variant="h5" fontWeight="bold">
+                            {totalResponses}
+                        </Typography>
+                      </Paper>
+                    </Grid>
+                    
+                    {averageRating !== null && (
+                      <Grid item xs={12} sm={6} md={12}>
+                        <Paper sx={{ p: 2, border: '1px solid #e0e0e0', bgcolor: 'background.paper' }}>
+                          <Typography variant="body2" color="text.secondary">{t('averageRating')}</Typography>
+                          <Typography variant="h5" fontWeight="bold">
+                            {averageRating.toFixed(2)}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    )}
+                    
+                    {ratingStandardDeviation !== null && (
+                      <Grid item xs={12} sm={6} md={12}>
+                        <Paper sx={{ p: 2, border: '1px solid #e0e0e0', bgcolor: 'background.paper' }}>
+                          <Typography variant="body2" color="text.secondary">{t('ratingStandardDeviation')}</Typography>
+                          <Typography variant="h5" fontWeight="bold">
+                            {ratingStandardDeviation.toFixed(2)}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    )}
+                </Grid>
             </Grid>
-            {averageRating !== null && (
-              <Grid item xs={12} sm={6}>
-                <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
-                  <Typography variant="body1">
-                    {t('averageRating')}: <strong>{averageRating.toFixed(2)}</strong>
-                  </Typography>
+            
+            {/*TODO: ideia de onde ficaria o grafico  */}
+            {/* <Grid item xs={12} md={7}>
+                <Paper sx={{ p: 2, border: '1px solid #e0e0e0', bgcolor: 'background.paper', height: 350 }}>
+                    <Typography variant="subtitle1" mb={1}>{t('ratingDistribution')}</Typography>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                            data={ratingDistribution}
+                            margin={{ top: 5, right: 10, left: -20, bottom: 50 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                            <XAxis 
+                                dataKey="name" 
+                                angle={-45} 
+                                textAnchor="end" 
+                                height={50}
+                            />
+                            <YAxis 
+                                allowDecimals={false}
+                                label={{ value: t('totalResponses'), angle: -90, position: 'insideLeft' }}
+                            />
+                            <RechartsTooltip 
+                                cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} 
+                            />
+                            <Bar dataKey="count" fill="#1976d2" name={t('responses')} radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
                 </Paper>
-              </Grid>
-            )}
-            {ratingStandardDeviation !== null && (
-              <Grid item xs={12} sm={6}>
-                <Paper elevation={1} sx={{ p: 2, bgcolor: 'grey.100' }}>
-                  <Typography variant="body1">
-                    {t('ratingStandardDeviation')}: <strong>{ratingStandardDeviation.toFixed(2)}</strong>
-                  </Typography>
-                </Paper>
-              </Grid>
-            )}
+            </Grid> */}
           </Grid>
         </Box>
       </Paper>
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Stack direction="row" spacing={1}>
-          <Button size='small' variant="outlined" startIcon={<FileDownloadIcon />} onClick={() => handleDownload('pdf')}>
-            {t('downloadPDF')}
-          </Button>
-          <Button size='small' variant="outlined" startIcon={<FileDownloadIcon />} onClick={() => handleDownload('xml')}>
-            {t('downloadXML')}
-          </Button>
-        </Stack>
-      </Box>
+      {error && responses.length > 0 && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
+
 
       {Array.isArray(responses) && responses.length > 0 ? (
-        <TableContainer component={Paper}>
+        <TableContainer component={Paper} sx={{ boxShadow: 'none', border: '1px solid #e0e0e0' }}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell></TableCell>
-                <TableCell>{t('id')}</TableCell>
-                <TableCell>{t('company')}</TableCell>
-                <TableCell>{t('language')}</TableCell>
-                <TableCell>{t('responseDate')}</TableCell>
-                <TableCell>{t('guestId')}</TableCell>
-                <TableCell>{t('feedback')}</TableCell>
+                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('id')}</TableCell>
+                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('company')}</TableCell>
+                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('language')}</TableCell>
+                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('responseDate')}</TableCell>
+                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('guestId')}</TableCell>
+                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('feedback')}</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {responses.map(response => (
                 <React.Fragment key={response.id}>
-                  <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-                    <TableCell>
+                  <TableRow 
+                    hover 
+                    onClick={() => handleRowClick(response.id)}
+                    sx={{ 
+                        '& > *': { borderBottom: 'unset' }, 
+                        cursor: 'pointer',
+                        '&:hover': {
+                            backgroundColor: '#f5f5f5', 
+                        },
+                    }}
+                  >
+                    <TableCell width={30}>
                       <IconButton
                         aria-label="expand row"
                         size="small"
-                        onClick={() => setOpen(prev => ({ ...prev, [response.id]: !prev[response.id] }))}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleRowClick(response.id);
+                        }}
                       >
                         {open[response.id] ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
                       </IconButton>
@@ -338,9 +525,11 @@ const ReportPage = () => {
                         <Typography variant="body2" sx={{ flexGrow: 1 }}>
                           {response.freeTextFeedback ? `${response.freeTextFeedback.substring(0, 50)}...` : t('notApplicable')}
                         </Typography>
-                        <IconButton onClick={() => handleDownloadSingle(response)} size="small">
-                          <DownloadIcon />
-                        </IconButton>
+                        <Tooltip title={t('downloadSingleReport')}>
+                            <IconButton onClick={(e) => { e.stopPropagation(); handleDownloadSingle(response); }} size="small">
+                              <DownloadIcon />
+                            </IconButton>
+                        </Tooltip>
                       </Box>
                     </TableCell>
                   </TableRow>
@@ -354,7 +543,7 @@ const ReportPage = () => {
                           <Grid container spacing={2}>
                             {response.answers.map(answer => (
                               <Grid item xs={12} sm={6} md={4} key={answer.answerId}>
-                                <Paper elevation={2} sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                                <Paper elevation={0} sx={{ p: 2, border: '1px solid #f0f0f0', height: '100%', display: 'flex', flexDirection: 'column' }}>
                                   <Typography variant="subtitle2" color="text.secondary" noWrap>
                                     {answer.surveySectionName}
                                   </Typography>
@@ -369,7 +558,7 @@ const ReportPage = () => {
                             ))}
                           </Grid>
                           {response.freeTextFeedback && (
-                            <Paper elevation={2} sx={{ p: 2, mt: 3 }}>
+                            <Paper elevation={0} sx={{ p: 2, mt: 3, border: '1px solid #f0f0f0' }}>
                               <Typography variant="body2" fontWeight="bold">
                                 {t('fullFeedback')}:
                               </Typography>
@@ -388,9 +577,11 @@ const ReportPage = () => {
           </Table>
         </TableContainer>
       ) : (
-        <Typography variant="body1" align="center" color="text.secondary">
-          {t('noResponsesFound')}
-        </Typography>
+        <Paper sx={{ p: 3, boxShadow: 'none', border: '1px solid #e0e0e0' }}>
+            <Typography variant="body1" align="center" color="text.secondary">
+              {t('noResponsesFound')}
+            </Typography>
+        </Paper>
       )}
 
       <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>

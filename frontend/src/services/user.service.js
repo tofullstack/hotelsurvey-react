@@ -1,4 +1,3 @@
-
 import api from './api';
 
 const USER_BASE_URL = '/auth/users'; 
@@ -16,6 +15,17 @@ const UserService = {
       return response.data;
     } catch (error) {
       console.error('Get users error:', error.response?.data || error.message);
+      throw error;
+    }
+  },
+  
+  // Função adicionada para corrigir o erro na página de edição
+  getUserById: async (userId) => {
+    try {
+      const response = await api.get(`${USER_BASE_URL}/${userId}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Get user ${userId} error:`, error.response?.data || error.message);
       throw error;
     }
   },

@@ -84,12 +84,21 @@ const FormService = {
     }
   },
 
+  getFormsByCompanySerie: async (serieEmpresa) => {
+    try {
+      const response = await api.get(`${FORM_ADMIN_BASE_URL}/forms-company/${serieEmpresa}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching forms by company serie:', error.response?.data || error.message);
+      throw error;
+    }
+  },
   getConditionalFormsForCompany: async (companyId) => {
     try {
       const response = await api.get(`${FORM_ADMIN_BASE_URL}/conditional-forms/${companyId}`);
       return response.data;
     } catch (error) {
-      console.error('Error fetching conditional forms:', error.response?.data || error.message);
+      console.error('Error fetching conditional forms by company ID:', error.response?.data || error.message);
       throw error;
     }
   },

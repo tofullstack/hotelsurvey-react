@@ -1,4 +1,3 @@
-
 import React from 'react';
 import "./i18n";
 
@@ -16,7 +15,7 @@ import ChangePasswordPage from './pages/ChangePasswordPage';
 import UserManagementPage from './pages/UserManagementPage';
 import AccessDeniedPage from './pages/AccessDeniedPage'; 
 import DashboardPage from './pages/DashboardPage';
-
+import UserCreateEditPage from './pages/UserCreateEditPage'; 
 
 
 const PrivateRoute = ({ children }) => {
@@ -75,12 +74,16 @@ function App() {
             <Route path="forms/new" element={<FormEditorPage />} />
             <Route path="forms/edit/:formId" element={<FormEditorPage />} />
             <Route path="reports" element={<ReportPage />} /> 
+            
             <Route path="companies" element={<AdminCompaniesPage />} />
             <Route path="companies/new" element={<CompanyForm />} />
             <Route path="companies/edit/:id" element={<CompanyForm />} />
+            
             <Route path="dashboard" element={<DashboardPage/>} />
             
             <Route path="users" element={<AdminRoute><UserManagementPage /></AdminRoute>} />
+            <Route path="users/new" element={<AdminRoute><UserCreateEditPage /></AdminRoute>} />
+            <Route path="users/edit/:id" element={<AdminRoute><UserCreateEditPage /></AdminRoute>} />
           </Route>
 
           <Route path="*" element={<Navigate to="/login" replace />} />

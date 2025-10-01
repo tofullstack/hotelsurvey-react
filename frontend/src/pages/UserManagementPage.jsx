@@ -9,7 +9,7 @@ import {
   TableRow,
   Paper,
   Button,
-  Dialog,
+  Dialog, // Mantido apenas para o modal de desativação
   DialogActions,
   DialogContent,
   DialogContentText,
@@ -17,37 +17,45 @@ import {
   CircularProgress,
   Box,
   Typography,
-  Container,
-  Breadcrumbs,
-  Link,
   Stack,
-  Pagination,
   Chip,
   IconButton,
   Menu,
-  MenuItem
+  MenuItem,
+  Pagination, 
+  Container, 
+  Breadcrumbs, 
+  Link, 
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import UserService from '../services/user.service';
-import UserForm from '../components/UserForm';
-import Alert from '@mui/material/Alert';
-import Collapse from '@mui/material/Collapse';
+import FilterListIcon from '@mui/icons-material/FilterList'; 
+import GetAppIcon from '@mui/icons-material/GetApp'; 
+import SearchIcon from '@mui/icons-material/Search'; 
 import CheckIcon from '@mui/icons-material/Check';
-import { Link as RouterLink } from 'react-router-dom';
+import Collapse from '@mui/material/Collapse';
+import Alert from '@mui/material/Alert';
+import { Link as RouterLink, useNavigate } from 'react-router-dom'; 
+import UserService from '../services/user.service';
 
-
+const tableHeaders = [
+  { id: 'login', label: 'userLogin' },
+  { id: 'profile', label: 'userProfile' },
+  { id: 'company', label: 'userCompany' },
+  { id: 'status', label: 'userStatus' },
+  { id: 'actions', label: 'actions', align: 'right' },
+];
 
 const UserManagementPage = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate(); 
 
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [openModal, setOpenModal] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  
 
   const [openDeactivateModal, setOpenDeactivateModal] = useState(false);
   const [selectedUserForDeactivate, setSelectedUserForDeactivate] = useState(null);
@@ -55,12 +63,26 @@ const UserManagementPage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
+  const [totalElements, setTotalElements] = useState(0); 
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
+  const openMenu = Boolean(anchorEl);
+
   const [alertInfo, setAlertInfo] = useState({ open: false, message: '', severity: 'success' });
 
-  const open = Boolean(anchorEl);
+
+  
+  const handleCreateNew = () => {
+      navigate('/admin/users/new'); 
+  };
+
+  const handleEdit = (user) => {
+      navigate(`/admin/users/edit/${user.id}`); 
+      handleMenuClose();
+  };
+
+
   const handleMenuClick = (event, userId) => {
     setAnchorEl(event.currentTarget);
     setCurrentUserId(userId);
@@ -70,12 +92,11 @@ const UserManagementPage = () => {
     setCurrentUserId(null);
   };
 
-
   const showAlert = (message, severity) => {
     setAlertInfo({ open: true, message, severity });
     setTimeout(() => {
       setAlertInfo({ ...alertInfo, open: false });
-    }, 3000); // 3 segundos
+    }, 3000); 
   };
 
   const currentUser = users.find(user => user.id === currentUserId);
@@ -115,21 +136,23 @@ const UserManagementPage = () => {
       if (data && Array.isArray(data.content)) {
         setUsers(data.content);
         setTotalPages(data.totalPages);
+        setTotalElements(data.totalElements); 
       } else {
         if (Array.isArray(data)) {
           setUsers(data);
           setTotalPages(1);
+          setTotalElements(data.length);
         } else {
           setUsers([]);
           setTotalPages(0);
-          console.error("API response for users is not a valid array:", data);
+          setTotalElements(0);
         }
       }
     } catch (err) {
       setError(t('failToLoadUsers'));
-      console.error(err);
       setUsers([]);
       setTotalPages(0);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -142,49 +165,22 @@ const UserManagementPage = () => {
   useEffect(() => {
     fetchUsers();
   }, [page, rowsPerPage]);
-
-  const handleOpenModal = (user = null) => {
-    setSelectedUser(user);
-    setOpenModal(true);
-  };
-
-  const handleCloseModal = () => {
-    setOpenModal(false);
-    setSelectedUser(null);
-  };
-
-  const handleSaveUser = async (userData) => {
-    try {
-      if (selectedUser) {
-        const userToUpdate = {
-          profile: userData.profile,
-          companyId: userData.companyId,
-        };
-        await UserService.updateUser(selectedUser.id, userToUpdate);
-        showAlert(t('userUpdatedSuccessfully'), 'success');
-      } else {
-        await UserService.createUser(userData);
-        showAlert(t('userCreatedSuccessfully'), 'success');
-      }
-      handleCloseModal();
-      fetchUsers();
-    } catch (err) {
-      setError(err.response?.data?.message || t('failToSaveUser'));
-      console.error(err);
-      showAlert(err.response?.data?.message || t('failToSaveUser'), 'error');
-    }
-  };
-
+  
   const handleActivate = async (userId) => {
     try {
       await UserService.activateUser(userId);
+      showAlert(t('userActivatedSuccessfully'), 'success');
       fetchUsers();
     } catch (err) {
       setError(err.response?.data?.message || t('failToActivateUser'));
-      console.error(err);
+      showAlert(err.response?.data?.message || t('failToActivateUser'), 'error');
+    } finally {
+      handleMenuClose();
     }
   };
 
+
+  // --- Renderização de Status ---
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -197,9 +193,11 @@ const UserManagementPage = () => {
     return <Typography color="error" sx={{ textAlign: 'center', mt: 4 }}>{error}</Typography>;
   }
 
+  // --- Renderização Principal (UI) ---
   return (
-    <Container maxWidth="xl" sx={{ my: 4 }}>
+    <Container maxWidth="xl" sx={{ my: 4 }}> 
 
+      {/* Alerta de feedback */}
       <Collapse in={alertInfo.open}>
         <Alert
           icon={<CheckIcon fontSize="inherit" />}
@@ -211,68 +209,96 @@ const UserManagementPage = () => {
         </Alert>
       </Collapse>
       
+      {/* Breadcrumbs */}
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
+        <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Typography color="text.primary">{t("manageUsers")}</Typography>
       </Breadcrumbs>
-
-      <Paper sx={{ p: 3 }}>
+      
+      <Paper sx={{ p: 3, boxShadow: 'none', border: '1px solid #e0e0e0' }}> 
+        
+        {/* Cabeçalho da Tabela - Título, Opções e Botão */}
         <Box mb={2} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" component="h1">
+          <Typography variant="h5" component="h1">
             {t("manageUsers")}
           </Typography>
-          <Button
-            variant="contained"
-            color='info'
-            startIcon={<AddIcon />}
-            onClick={() => handleOpenModal()}
-            size="small"
-          >
-            {t('createUser')}
-          </Button>
+          <Stack direction="row" spacing={1} alignItems="center">
+             {/* Ícones de Opções (Filtro, Download, Busca) - Placeholders */}
+            <IconButton size="small" aria-label="Filtro" sx={{ border: '1px solid #e0e0e0' }}>
+              <FilterListIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" aria-label="Download" sx={{ border: '1px solid #e0e0e0' }}>
+              <GetAppIcon fontSize="small" />
+            </IconButton>
+            <IconButton size="small" aria-label="Busca" sx={{ border: '1px solid #e0e0e0' }}>
+              <SearchIcon fontSize="small" />
+            </IconButton>
+            
+            <Button
+              variant="contained"
+              color='primary' 
+              startIcon={<AddIcon />}
+              onClick={handleCreateNew} // Alterado para navegação
+              size="medium" 
+            >
+              {t('createUser')}
+            </Button>
+          </Stack>
         </Box>
 
+        {/* Tabela de Usuários (conteúdo mantido) */}
         <TableContainer>
           <Table>
             <TableHead>
               <TableRow>
-                {/* <TableCell sx={{ fontWeight: 'bold' }}>{t('userId')}</TableCell> */}
-                <TableCell sx={{ fontWeight: 'bold' }}>{t('userLogin')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>{t('userProfile')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>{t('userCompany')}</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>{t('userStatus')}</TableCell>
-                <TableCell align="right" sx={{ fontWeight: 'bold' }}>{t('actions')}</TableCell>
+                {tableHeaders.map((header) => (
+                  <TableCell
+                    key={header.id}
+                    align={header.align || 'left'}
+                    sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }} 
+                  >
+                    {t(header.label)}
+                  </TableCell>
+                ))}
               </TableRow>
             </TableHead>
             <TableBody>
               {Array.isArray(users) && users.length > 0 ? (
                 users.map((user) => (
-                  <TableRow key={user.id} hover>
-                    {/* <TableCell>{user.id}</TableCell> */}
+                  <TableRow 
+                    key={user.id} 
+                    hover
+                    sx={{ '&:last-child td, &:last-child th': { border: 0 } }} 
+                  >
                     <TableCell>{user.login}</TableCell>
-
                     <TableCell>
                       <Chip
                         size="small"
                         label={user.profile === "ADMIN" ? t("menu_item_user_management_admin") : t("menu_item_user_management_user")}
                         color={user.profile === "ADMIN" ? "primary" : "default"}
-                        variant="text"
+                        variant="filled" 
                       />
                     </TableCell>
                     <TableCell>{user.companyName || t('notApplicable')}</TableCell>
                     <TableCell>
-                      <Chip size='small'
+                      <Chip 
+                        size='small'
                         label={user.active ? t('active') : t('inactive')}
-                        color={user.active ? 'success' : 'default'}
-                        variant="outlined" />
+                        sx={{
+                          backgroundColor: user.active ? '#e8f5e9' : '#f5f5f5', 
+                          color: user.active ? '#388e3c' : '#757575',
+                          border: 'none', 
+                          fontWeight: 500
+                        }}
+                      />
                     </TableCell>
                     <TableCell align="right">
                       <Stack direction="row" spacing={1} justifyContent="flex-end">
                         <IconButton
                           aria-label="more"
-                          aria-controls={open ? 'long-menu' : undefined}
-                          aria-expanded={open ? 'true' : undefined}
+                          aria-controls={openMenu ? 'long-menu' : undefined}
+                          aria-expanded={openMenu ? 'true' : undefined}
                           aria-haspopup="true"
                           onClick={(e) => handleMenuClick(e, user.id)}
                           size="small"
@@ -285,7 +311,7 @@ const UserManagementPage = () => {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">
+                  <TableCell colSpan={5} align="center">
                     <Typography variant="body1" color="text.secondary">
                       {t('noUsersFound')}
                     </Typography>
@@ -296,21 +322,29 @@ const UserManagementPage = () => {
           </Table>
         </TableContainer>
 
+        {/* Paginação Original (MANTIDA) */}
+        <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+          <Pagination
+            count={totalPages}
+            page={page + 1}
+            onChange={handleChangePage}
+            color="primary"
+          />
+        </Box>
+        
+        {/* Menu de Ações (MoreVertIcon) */}
         <Menu
           id="long-menu"
           MenuListProps={{
             'aria-labelledby': 'long-button',
           }}
           anchorEl={anchorEl}
-          open={open}
+          open={openMenu}
           onClose={handleMenuClose}
         >
           {currentUser && (
             [
-              <MenuItem key="edit" onClick={() => {
-                handleOpenModal(currentUser);
-                handleMenuClose();
-              }}>
+              <MenuItem key="edit" onClick={() => handleEdit(currentUser)}> {/* Alterado para navegação */}
                 <EditIcon fontSize="small" sx={{ mr: 1 }} /> {t('edit')}
               </MenuItem>,
               currentUser.active ? (
@@ -323,31 +357,17 @@ const UserManagementPage = () => {
               ) : (
                 <MenuItem key="activate" onClick={() => {
                   handleActivate(currentUser.id);
-                  handleMenuClose();
                 }}>
-                  {t('activate')}
+                  <CheckIcon fontSize="small" sx={{ mr: 1 }} /> {t('activate')}
                 </MenuItem>
               )
             ]
           )}
         </Menu>
 
-        <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
-          <Pagination
-            count={totalPages}
-            page={page + 1}
-            onChange={handleChangePage}
-            color="primary"
-          />
-        </Box>
       </Paper>
 
-      <Dialog open={openModal} onClose={handleCloseModal}>
-        <DialogTitle>{selectedUser ? t('editUser') : t('createNewUser')}</DialogTitle>
-        <DialogContent>
-          <UserForm user={selectedUser} onSave={handleSaveUser} onCancel={handleCloseModal} />
-        </DialogContent>
-      </Dialog>
+      {/* MODAL DE CRIAÇÃO/EDIÇÃO REMOVIDO DAQUI */}
 
       <Dialog
         open={openDeactivateModal}

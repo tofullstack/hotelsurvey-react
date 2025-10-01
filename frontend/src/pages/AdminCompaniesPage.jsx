@@ -15,7 +15,6 @@ import {
   Paper,
   IconButton,
   CircularProgress,
-  Grid,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -25,34 +24,50 @@ import {
   Link,
   Select,
   MenuItem,
-  FormControl,
-  InputLabel,
   Chip,
   Menu,
   Alert,
-  Collapse
+  Collapse,
+  Stack, 
+  InputAdornment, 
 } from "@mui/material";
 import Pagination from "@mui/material/Pagination";
-import { Edit, Search as SearchIcon, Add as AddIcon, Delete, MoreVert as MoreVertIcon } from "@mui/icons-material";
+import { 
+    Edit, 
+    Search as SearchIcon, 
+    Add as AddIcon, 
+    Delete, 
+    MoreVert as MoreVertIcon,
+    Refresh as RefreshIcon // 💡 Importado para o botão de Rollback
+} from "@mui/icons-material";
+import FilterListIcon from "@mui/icons-material/FilterList"; 
+import GetAppIcon from "@mui/icons-material/GetApp";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Link as RouterLink } from 'react-router-dom';
 import CheckIcon from '@mui/icons-material/Check';
 
 
+const tableHeaders = [
+    { id: 'name', label: 'menu_company_name' },
+    { id: 'series', label: 'menu_company_series' },
+    { id: 'status', label: 'menu_company_status' },
+    { id: 'actions', label: 'menu_company_actions', align: 'right' },
+];
+
+
 const AdminCompaniesPage = () => {
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(); 
+  const { t } = useTranslation(); 
 
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [searchName, setSearchName] = useState("");
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("all"); 
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage] = useState(10); 
   const [totalPages, setTotalPages] = useState(0);
 
-  // modal de confirmação
   const [openConfirm, setOpenConfirm] = useState(false);
   const [companyToToggle, setCompanyToToggle] = useState(null);
 
@@ -62,11 +77,14 @@ const AdminCompaniesPage = () => {
 
   const [alertInfo, setAlertInfo] = useState({ open: false, message: '', severity: 'success' });
 
+  const [anchorElFilter, setAnchorElFilter] = useState(null);
+  const openFilterMenu = Boolean(anchorElFilter);
+  
   const showAlert = (message, severity) => {
     setAlertInfo({ open: true, message, severity });
     setTimeout(() => {
       setAlertInfo({ ...alertInfo, open: false });
-    }, 3000); // 3 segundos
+    }, 3000); 
   };
 
   const handleMenuClick = (event, companyId) => {
@@ -78,16 +96,27 @@ const AdminCompaniesPage = () => {
     setCurrentCompanyId(null);
   };
 
+  const handleFilterMenuClick = (event) => {
+    setAnchorElFilter(event.currentTarget);
+  };
+  const handleFilterMenuClose = () => {
+    setAnchorElFilter(null);
+  };
+
   const currentCompany = companies.find(company => company.id === currentCompanyId);
 
-  const fetchCompanies = async () => {
+  const fetchCompanies = async (
+    currentPage = page, 
+    currentSearchName = searchName, 
+    currentStatus = status
+  ) => {
     setLoading(true);
     try {
       const response = await CompanyService.getAllCompanies({
-        page,
+        page: currentPage,
         size: rowsPerPage,
-        name: searchName,
-        status,
+        name: currentSearchName,
+        status: currentStatus === 'all' ? undefined : currentStatus, 
       });
 
       setCompanies(response.content || []);
@@ -104,10 +133,46 @@ const AdminCompaniesPage = () => {
 
   useEffect(() => {
     fetchCompanies();
-  }, [page, rowsPerPage, searchName, status]);
+  }, [page, rowsPerPage]); 
+
+  // Função ajustada para garantir que a busca use o estado atual ou resetado
+  const handleSearch = () => {
+      setPage(0); // Volta para a primeira página ao aplicar busca
+      fetchCompanies(0, searchName, status);
+  };
+
+  const handleApplyFilters = () => {
+      setPage(0); // Volta para a primeira página ao aplicar filtros
+      handleFilterMenuClose();
+      fetchCompanies(0, searchName, status);
+  };
+
+  // 💡 FUNÇÃO PARA LIMPAR TODOS OS FILTROS
+  const handleResetFilters = () => {
+    // 1. Resetar os estados para o valor inicial
+    setSearchName("");
+    setStatus("all");
+
+    // 2. Voltar para a primeira página e fechar o menu
+    setPage(0);
+    if (openFilterMenu) handleFilterMenuClose();
+    
+    // 3. Chamar a busca com os valores resetados
+    fetchCompanies(0, "", "all"); 
+  };
+  // FIM: FUNÇÃO PARA LIMPAR TODOS OS FILTROS
+
+
+  const handleStatusChange = (e) => {
+    setStatus(e.target.value);
+  };
+
+  const handleSearchNameChange = (e) => {
+    setSearchName(e.target.value);
+  };
 
   const handleChangePage = (event, newPage) => setPage(newPage - 1);
-  const handleSearch = () => setPage(0);
+  
 
   const handleEdit = (id) => navigate(`/admin/companies/edit/${id}`);
 
@@ -131,6 +196,7 @@ const AdminCompaniesPage = () => {
       } finally {
         setOpenConfirm(false);
         setCompanyToToggle(null);
+        handleMenuClose();
       }
     }
   };
@@ -150,126 +216,197 @@ const AdminCompaniesPage = () => {
       </Collapse>
       
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-      <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
+        <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
         <Typography color="text.primary">{t("breadcrumb_companies")}</Typography>
       </Breadcrumbs>
-
-      <Paper sx={{ p: 3 }}>
-        <Box mb={2}>
-          <Typography variant="h6" component="h1">
+      
+      <Paper sx={{ p: 3, boxShadow: 'none', border: '1px solid #e0e0e0' }}>
+        
+        <Box mb={2} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h5" component="h1">
             {t("manageCompanies")}
           </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            size="medium"
+            onClick={() => navigate("/admin/companies/new")}
+          >
+           { t("menu_company_create_new")}
+          </Button>
+        </Box>
+        
+        <Box 
+            sx={{ 
+                display: 'flex', 
+                justifyContent: 'flex-end', 
+                alignItems: 'center', 
+                gap: 1, 
+                mb: 2 
+            }}
+        >
+            {/* 💡 NOVO: Botão de Rollback/Reset */}
+            <IconButton 
+                size="small" 
+                aria-label="Reset Filters" 
+                onClick={handleResetFilters} 
+                sx={{ border: '1px solid #e0e0e0' }}
+            >
+                <RefreshIcon fontSize="small" /> 
+            </IconButton>
+
+            <IconButton 
+                size="small" 
+                aria-label="Filter" 
+                onClick={handleFilterMenuClick}
+                sx={{ border: '1px solid #e0e0e0' }}
+            >
+                <FilterListIcon fontSize="small" />
+            </IconButton>
+
+            
+            <TextField
+                placeholder={t("menu_company_search_placeholder")}
+                value={searchName}
+                onChange={handleSearchNameChange}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleSearch();
+                }}
+                variant="outlined"
+                size="small"
+                sx={{ 
+                    '& .MuiOutlinedInput-root': {
+                        height: 36, 
+                        paddingRight: '8px',
+                        borderRadius: '4px',
+                    },
+                }}
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchIcon fontSize="small" />
+                        </InputAdornment>
+                    ),
+                }}
+            />
         </Box>
 
-        <Grid container spacing={2} alignItems="center" sx={{ mb: 3 }}>
-          <Grid item>
-            <TextField
-              label={t("menu_company_search_placeholder")}
-              value={searchName}
-              onChange={(e) => setSearchName(e.target.value)}
-              variant="outlined"
-              size="small"
-            />
-          </Grid>
-          <Grid item>
-            <FormControl size="small">
-              <InputLabel>Status</InputLabel>
-              <Select
+        <Menu
+            anchorEl={anchorElFilter}
+            open={openFilterMenu}
+            onClose={handleFilterMenuClose}
+            anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+            }}
+            PaperProps={{
+                sx: { 
+                    minWidth: 200, 
+                    p: 1 
+                }
+            }}
+        >
+            <Typography variant="caption" color="text.secondary" sx={{ p: 1 }}>
+                {t("filter_by_status")}
+            </Typography>
+             <Select
                 value={status}
-                label="Status"
-                onChange={(e) => {
-                  setStatus(e.target.value);
-                  setPage(0);
-                }}
-              >
+                onChange={handleStatusChange}
+                fullWidth
+                size="small"
+                sx={{ mb: 1 }}
+                displayEmpty
+            >
+                <MenuItem value="all">{t("allStatus") || "Todos"}</MenuItem> {/* Adicionado "All" no filtro */}
                 <MenuItem value="active">{t("menu_company_active")}</MenuItem>
                 <MenuItem value="inactive">{t("menu_company_inactive")}</MenuItem>
-                <MenuItem value="all">{t("menu_company_all")}</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item>
-            <Button
-              variant="outlined"
-              startIcon={<SearchIcon />}
-              onClick={handleSearch}
-              size="small"
-              color="info"
+            </Select>
+            <Button 
+                onClick={handleApplyFilters}
+                variant="contained" 
+                size="small" 
+                fullWidth
             >
-              {t("menu_company_search")}
+                {t("apply_filter")}
             </Button>
-          </Grid>
-          <Grid item>
-            <Button
-              variant="contained"
-              color="info"
-              startIcon={<AddIcon />}
-              size="small"
-              onClick={() => navigate("/admin/companies/new")}
-            >
-             { t("menu_company_create_new")}
-            </Button>
-          </Grid>
-        </Grid>
+        </Menu>
+
 
         {loading ? (
           <Box display="flex" justifyContent="center" my={5}>
             <CircularProgress />
           </Box>
         ) : (
-          <Paper elevation={3}>
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>{t("menu_company_name")}</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>{t("menu_company_series")}</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>{t("menu_company_status")}</TableCell>
-                    <TableCell align="right" sx={{ fontWeight: "bold" }}>
-                    {t("menu_company_actions")}
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  {tableHeaders.map((header) => (
+                    <TableCell
+                        key={header.id}
+                        align={header.align || 'left'}
+                        sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }} 
+                    >
+                        {t(header.label)}
                     </TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {companies.length > 0 ? (
-                    companies.map((company) => (
-                      <TableRow key={company.id} hover>
-                        <TableCell>{company.name}</TableCell>
-                        <TableCell>{company.serieEmpresa}</TableCell>
-                        <TableCell>
-                          <Chip size='small'
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {companies.length > 0 ? (
+                  companies.map((company) => (
+                    <TableRow 
+                        key={company.id} 
+                        hover
+                        sx={{ '&:last-child td, &:last-child th': { border: 0 } }} 
+                    >
+                      <TableCell>{company.name}</TableCell>
+                      <TableCell>{company.serieEmpresa}</TableCell>
+                      <TableCell>
+                        <Chip size='small'
                             label={company.active ? t("menu_company_active") : t("menu_company_inactive")}
-                            color={company.active ? "success" : "default"}
-                            variant="outlined"
-                          />
-                        </TableCell>
-                        <TableCell align="right">
-                          <IconButton
-                            aria-label="more"
-                            aria-controls={openMenu ? 'long-menu' : undefined}
-                            aria-expanded={openMenu ? 'true' : undefined}
-                            aria-haspopup="true"
-                            onClick={(e) => handleMenuClick(e, company.id)}
-                            size="small"
-                          >
-                            <MoreVertIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={4} align="center">
-                        {t("menu_company_no_companies")}
+                            sx={{
+                                backgroundColor: company.active ? '#e8f5e9' : '#f5f5f5', 
+                                color: company.active ? '#388e3c' : '#757575',
+                                border: 'none', 
+                                fontWeight: 500
+                            }}
+                        />
+                      </TableCell>
+                      <TableCell align="right">
+                        <IconButton
+                          aria-label="more"
+                          aria-controls={openMenu ? 'company-actions-menu' : undefined}
+                          aria-expanded={openMenu ? 'true' : undefined}
+                          aria-haspopup="true"
+                          onClick={(e) => handleMenuClick(e, company.id)}
+                          size="small"
+                        >
+                          <MoreVertIcon />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Paper>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={4} align="center">
+                      <Typography variant="body1" color="text.secondary">
+                        {t("menu_company_no_companies")}
+                      </Typography>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
+        
         <Menu
           id="company-actions-menu"
           anchorEl={anchorEl}
@@ -288,12 +425,16 @@ const AdminCompaniesPage = () => {
                 handleToggleStatusClick(currentCompany);
                 handleMenuClose();
               }}>
-                <Delete fontSize="small" sx={{ mr: 1 }} /> 
+                {currentCompany.active 
+                    ? <Delete fontSize="small" sx={{ mr: 1 }} /> 
+                    : <CheckIcon fontSize="small" sx={{ mr: 1 }} />
+                }
                 {currentCompany.active ? t('deactivate') : t('activate')}
               </MenuItem>
             ]
           )}
         </Menu>
+        
         <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
           <Pagination
             count={totalPages}

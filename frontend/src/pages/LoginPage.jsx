@@ -12,6 +12,9 @@ import {
   CardContent,
   Alert,
   CircularProgress,
+  Avatar, 
+  Link,  
+  Grid,   
 } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { useTranslation } from "react-i18next";
@@ -22,13 +25,52 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({ login: '', password: '' }); 
+  
   const { t } = useTranslation(); 
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
 
+  const handleLoginChange = (e) => {
+    setLogin(e.target.value);
+    if (fieldErrors.login) {
+      setFieldErrors(prev => ({ ...prev, login: '' }));
+    }
+    if (error) setError(null);
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (fieldErrors.password) {
+      setFieldErrors(prev => ({ ...prev, password: '' }));
+    }
+    if (error) setError(null);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
+
+    let hasError = false;
+    const newFieldErrors = { login: '', password: '' };
+    
+    const requiredMessage = t('validation_required') || 'Campo obrigatório'; 
+
+    if (!login.trim()) {
+      newFieldErrors.login = requiredMessage;
+      hasError = true;
+    }
+    if (!password.trim()) {
+      newFieldErrors.password = requiredMessage;
+      hasError = true;
+    }
+
+    setFieldErrors(newFieldErrors);
+
+    if (hasError) {
+      return; 
+    }
+
     setLoading(true);
     try {
       const response = await AuthService.login({ login, password });
@@ -45,6 +87,8 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
+  const isFormInvalid = !login.trim() || !password.trim() || loading; 
 
   return (
     <Box
@@ -67,12 +111,16 @@ const LoginPage = () => {
                 alignItems: 'center', 
                 mb: 2 
               }}>
-              <LockOutlinedIcon color="primary" sx={{ fontSize: 40 }} />
+              <Avatar sx={{ m: 1, bgcolor: 'primary.main' }}> 
+                <LockOutlinedIcon />
+              </Avatar>
               <Typography component="h1" variant="h5" mt={1}>
                 {t("loginWelcome")}
               </Typography>
             </Box>
+            
             {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+            
             <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
               <TextField
                 margin="normal"
@@ -84,7 +132,9 @@ const LoginPage = () => {
                 autoComplete="login"
                 autoFocus
                 value={login}
-                onChange={(e) => setLogin(e.target.value)}
+                onChange={handleLoginChange} 
+                error={!!fieldErrors.login}
+                helperText={fieldErrors.login}
               />
               <TextField
                 margin="normal"
@@ -96,17 +146,32 @@ const LoginPage = () => {
                 id="password"
                 autoComplete="current-password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange} 
+                error={!!fieldErrors.password}
+                helperText={fieldErrors.password}
               />
               <Button
                 type="submit"
                 fullWidth
                 variant="contained"
                 sx={{ mt: 3, mb: 2 }}
-                disabled={loading}
+                disabled={isFormInvalid} 
               >
-                {loading ? <CircularProgress size={24} /> : t("login_button_submit")}
+                {loading ? <CircularProgress size={24} color="inherit" /> : t("login_button_submit")}
               </Button>
+              
+              {/* FUTURO: grid para links de apoio */}
+              {/*<Grid container>
+                <Grid item xs>
+                  <Link href="/forgot-password" variant="body2" onClick={(e) => {
+                    e.preventDefault(); 
+                    navigate('/forgot-password'); 
+                  }}>
+                    {t("login_link_forgot_password") || 'Esqueceu a senha?'}
+                  </Link>
+                </Grid>
+                </Grid>*/}
+
             </Box>
           </CardContent>
         </Card>

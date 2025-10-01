@@ -42,6 +42,7 @@ import {
   Add as AddIcon,
   Save as SaveIcon,
   Close as CloseIcon,
+  ArrowBack as ArrowBackIcon, 
 } from "@mui/icons-material";
 import CompanyService from "../services/company.service";
 
@@ -153,6 +154,8 @@ const FormEditorPage = () => {
         } catch (err) {
           console.error(t("failToLoadConditionalForms"), err);
         }
+      } else {
+          setConditionalForms([]);
       }
     };
     fetchConditionalForms();
@@ -723,13 +726,38 @@ const FormEditorPage = () => {
               )}
           </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3, pt: 2, borderTop: '1px solid #e0e0e0' }}>
+            
+            <Button
+              variant="contained"
+              color="inherit" 
+              size="large"
+              startIcon={<ArrowBackIcon />}
+              onClick={() => navigate("/admin/forms")} 
+              sx={{ 
+                  backgroundColor: '#424242', 
+                  color: 'white',
+                  '&:hover': {
+                      backgroundColor: '#505050',
+                  }
+              }}
+            >
+              {t("cancel")}
+            </Button>
+            
             <Button
               type="submit"
               variant="contained"
-              color="info"
+              color="inherit" 
               size="large"
               startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
+              sx={{
+                backgroundColor: '#424242',
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: '#505050',
+                },
+              }}
             >
               {isNewForm ? t("createForm") : t("saveChanges")}
             </Button>
