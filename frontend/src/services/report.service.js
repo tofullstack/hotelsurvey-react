@@ -10,6 +10,9 @@ const ReportService = {
       if (filters.companyId) params.append('companyId', filters.companyId);
       if (filters.serieEmpresa) params.append('serieEmpresa', filters.serieEmpresa);
       if (filters.language) params.append('language', filters.language);
+      
+      if (filters.questionLanguage) params.append('questionLanguage', filters.questionLanguage);
+      
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
 
@@ -40,6 +43,9 @@ const ReportService = {
       if (filters.companyId) params.append('companyId', filters.companyId);
       if (filters.serieEmpresa) params.append('serieEmpresa', filters.serieEmpresa);
       if (filters.language) params.append('language', filters.language);
+      
+      if (filters.questionLanguage) params.append('questionLanguage', filters.questionLanguage);
+      
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
 
@@ -58,6 +64,9 @@ const ReportService = {
       if (filters.companyId) params.append('companyId', filters.companyId);
       if (filters.serieEmpresa) params.append('serieEmpresa', filters.serieEmpresa);
       if (filters.language) params.append('language', filters.language);
+      
+      if (filters.questionLanguage) params.append('questionLanguage', filters.questionLanguage);
+
       if (filters.startDate) params.append('startDate', filters.startDate);
       if (filters.endDate) params.append('endDate', filters.endDate);
 

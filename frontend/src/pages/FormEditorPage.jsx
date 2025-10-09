@@ -730,17 +730,17 @@ const FormEditorPage = () => {
             
             <Button
               variant="contained"
-              color="inherit" 
+              color="primary" 
               size="large"
               startIcon={<ArrowBackIcon />}
               onClick={() => navigate("/admin/forms")} 
-              sx={{ 
-                  backgroundColor: '#424242', 
-                  color: 'white',
-                  '&:hover': {
-                      backgroundColor: '#505050',
-                  }
-              }}
+              // sx={{ 
+              //     backgroundColor: '#424242', 
+              //     color: 'white',
+              //     '&:hover': {
+              //         backgroundColor: '#505050',
+              //     }
+              // }}
             >
               {t("cancel")}
             </Button>
@@ -748,16 +748,16 @@ const FormEditorPage = () => {
             <Button
               type="submit"
               variant="contained"
-              color="inherit" 
+              color="primary" 
               size="large"
               startIcon={isNewForm ? <AddIcon /> : <SaveIcon />}
-              sx={{
-                backgroundColor: '#424242',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: '#505050',
-                },
-              }}
+              // sx={{
+              //   backgroundColor: '#424242',
+              //   color: 'white',
+              //   '&:hover': {
+              //     backgroundColor: '#505050',
+              //   },
+              // }}
             >
               {isNewForm ? t("createForm") : t("saveChanges")}
             </Button>

@@ -6,7 +6,8 @@ const AuthService = {
   login: async (credentials) => {
     try {
       const response = await api.post(`${AUTH_BASE_URL}/login`, credentials);
-      return response.data; // deve retornar { token, userId, profile, mustChangePassword }
+      return response.data; 
+  
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message);
       throw error;
@@ -25,9 +26,7 @@ const AuthService = {
   },
 
   logout: () => {
-    // romove token do localStorage
     localStorage.removeItem("token");
-    // remove o perfil do usuário ou qualquer outra informação
     localStorage.removeItem("userProfile"); 
   },
 

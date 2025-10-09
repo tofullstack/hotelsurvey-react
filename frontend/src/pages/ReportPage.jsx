@@ -38,8 +38,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList'; 
 import { Link as RouterLink } from 'react-router-dom';
 import DownloadIcon from '@mui/icons-material/Download';
-import RefreshIcon from '@mui/icons-material/Refresh'; // 💡 Importado o ícone de Rollback/Reset
-// Recharts Imports
+import RefreshIcon from '@mui/icons-material/Refresh'; 
 import { 
     BarChart, 
     Bar, 
@@ -52,11 +51,11 @@ import {
 
 
 const languages = [
-  { code: 'en-US', i18nKey: 'english' },
   { code: 'pt-BR', i18nKey: 'portuguese' },
+  { code: 'en-US', i18nKey: 'english' }, 
   { code: 'es-ES', i18nKey: 'spanish' },
-  { code: 'fr-FR', i18nKey: 'french' },
   { code: 'de-DE', i18nKey: 'german' },
+  { code: 'fr-FR', i18nKey: 'french' },
   { code: 'it-IT', i18nKey: 'italian' },
   { code: 'ja-JP', i18nKey: 'japanese' },
   { code: 'ko-KR', i18nKey: 'korean' },
@@ -84,10 +83,10 @@ const ReportPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Estado inicial de filtros (todos vazios)
   const initialFilterState = {
     serieEmpresa: '',
-    language: '',
+    language: '', 
+    questionLanguage: '', 
     startDate: '',
     endDate: ''
   };
@@ -182,7 +181,19 @@ const ReportPage = () => {
 
   const handleFilterInputChange = (e) => {
     const { name, value } = e.target;
-    setFilterInputs(prev => ({ ...prev, [name]: value }));
+    
+    setFilterInputs(prev => {
+        const newInputs = { ...prev, [name]: value };
+
+        if (name === 'language' || name === 'questionLanguage') {
+             setTimeout(() => {
+                 setPage(0);
+                 setFilters(newInputs); 
+             }, 0); 
+        }
+
+        return newInputs;
+    });
   };
 
   const applyFilters = () => {
@@ -190,17 +201,13 @@ const ReportPage = () => {
     setFilters(filterInputs);
   };
   
-  // 💡 FUNÇÃO PARA RESETAR TODOS OS FILTROS
   const handleResetFilters = () => {
-      // 1. Resetar o estado de input para o valor inicial (vazio)
       setFilterInputs(initialFilterState);
       
-      // 2. Fechar o painel de filtros avançados
       setOpenAdvancedFilters(false);
       
-      // 3. Aplica os filtros resetados, forçando a busca
       setPage(0);
-      setFilters(initialFilterState); // Isso dispara os useEffects
+      setFilters(initialFilterState); 
   };
 
 
@@ -265,11 +272,7 @@ const ReportPage = () => {
                 <FileDownloadIcon sx={{ mr: 1 }} /> PDF
               </Button>
             </Tooltip>
-            <Tooltip title={t('downloadXML')}>
-              <Button size='medium' variant="outlined" color="primary" onClick={() => handleDownload('xml')}>
-                <FileDownloadIcon sx={{ mr: 1 }} /> XML
-              </Button>
-            </Tooltip>
+
           </Stack>
         </Box>
         
@@ -348,14 +351,14 @@ const ReportPage = () => {
                 <Typography variant="subtitle2" mb={2}>{t('dateAndLanguageFilters')}</Typography>
                 <Grid container spacing={2}>
                     
-                    <Grid item xs={12} sm={6} md={4}>
+                    <Grid item xs={12} sm={6} md={3}>
                         <FormControl fullWidth size="small">
-                        <InputLabel id="language-select-label">{t('language')}</InputLabel>
+                        <InputLabel id="language-select-label">{t('responseLanguage')}</InputLabel>
                         <Select
                             labelId="language-select-label"
                             id="language-select"
                             value={filterInputs.language}
-                            label={t('language')}
+                            label={t('responseLanguage')}
                             onChange={handleFilterInputChange}
                             name="language"
                         >
@@ -371,7 +374,30 @@ const ReportPage = () => {
                         </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6} md={4}>
+                    <Grid item xs={12} sm={6} md={3}>
+                        <FormControl fullWidth size="small">
+                        <InputLabel id="question-language-select-label">{t('questionLanguage')}</InputLabel>
+                        <Select
+                            labelId="question-language-select-label"
+                            id="question-language-select"
+                            value={filterInputs.questionLanguage}
+                            label={t('questionLanguage')}
+                            onChange={handleFilterInputChange}
+                            name="questionLanguage"
+                        >
+                            <MenuItem value="">
+                            <em>{t('defaultLanguage')}</em> 
+                            </MenuItem>
+                            {languages.map((lang) => (
+                            <MenuItem key={lang.code} value={lang.code}>
+                                {t(lang.i18nKey)}
+                            </MenuItem>
+                            ))}
+                        </Select>
+                        </FormControl>
+                    </Grid>
+                    
+                    <Grid item xs={12} sm={6} md={3}>
                         <TextField
                         fullWidth
                         size="small"
@@ -384,7 +410,7 @@ const ReportPage = () => {
                         />
                     </Grid>
                     
-                    <Grid item xs={12} sm={6} md={4}>
+                    <Grid item xs={12} sm={6} md={3}>
                         <TextField
                         fullWidth
                         size="small"
@@ -485,7 +511,8 @@ const ReportPage = () => {
                 <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('company')}</TableCell>
                 <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('language')}</TableCell>
                 <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('responseDate')}</TableCell>
-                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('guestId')}</TableCell>
+                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('guestLastName')}</TableCell>
+                <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('guestUH')}</TableCell>
                 <TableCell sx={{ color: 'text.secondary', borderBottom: '1px solid #e0e0e0' }}>{t('feedback')}</TableCell>
               </TableRow>
             </TableHead>
@@ -519,7 +546,8 @@ const ReportPage = () => {
                     <TableCell>{response.companyName}</TableCell>
                     <TableCell>{response.language}</TableCell>
                     <TableCell>{new Date(response.responseDate).toLocaleString()}</TableCell>
-                    <TableCell>{response.guestIdentifier || t('notApplicable')}</TableCell>
+                    <TableCell>{response.guestLastName || t('notApplicable')}</TableCell>
+                    <TableCell>{response.guestUH || t('notApplicable')}</TableCell>
                     <TableCell>
                       <Box display="flex" alignItems="center" justifyContent="space-between">
                         <Typography variant="body2" sx={{ flexGrow: 1 }}>
@@ -534,7 +562,7 @@ const ReportPage = () => {
                     </TableCell>
                   </TableRow>
                   <TableRow>
-                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={7}>
+                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={9}> 
                       <Collapse in={open[response.id]} timeout="auto" unmountOnExit>
                         <Box sx={{ margin: 2, padding: 2, bgcolor: 'background.default', borderRadius: 2 }}>
                           <Typography variant="h6" gutterBottom>
@@ -548,6 +576,7 @@ const ReportPage = () => {
                                     {answer.surveySectionName}
                                   </Typography>
                                   <Typography variant="body1" fontWeight="bold" sx={{ mt: 1 }}>
+                                    {/* Esta label agora reflete o questionLanguage do filtro, graças ao backend */}
                                     {answer.questionLabel}
                                   </Typography>
                                   <Typography variant="body1" sx={{ mt: 1, wordWrap: 'break-word', flexGrow: 1 }}>

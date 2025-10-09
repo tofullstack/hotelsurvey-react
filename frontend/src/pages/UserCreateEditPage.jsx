@@ -236,14 +236,14 @@ const UserCreateEditPage = () => {
                 borderTop: '1px solid #e0e0e0' 
             }}
         >
-            {/* Botão Cancelar/Voltar (Esquerda) */}
             <Button
               variant="contained"
-              sx={{ 
-                  backgroundColor: '#343a40', 
-                  color: 'white', 
-                  '&:hover': { backgroundColor: '#495057' }
-              }}
+              color='primary'
+              // sx={{ 
+              //     backgroundColor: '#343a40', 
+              //     color: 'white', 
+              //     '&:hover': { backgroundColor: '#495057' }
+              // }}
               startIcon={<ArrowBackIcon />}
               size='large'
               onClick={handleCancel}
@@ -252,16 +252,16 @@ const UserCreateEditPage = () => {
               {t("cancel")}
             </Button>
 
-            {/* Botão Salvar/Criar (Direita) */}
             <Button 
                 type="submit" 
                 variant="contained" 
                 size='large'
-                sx={{ 
-                    backgroundColor: '#343a40', 
-                    color: 'white', 
-                    '&:hover': { backgroundColor: '#495057' }
-                }}
+                color='primary'
+                // sx={{ 
+                //     backgroundColor: '#343a40', 
+                //     color: 'white', 
+                //     '&:hover': { backgroundColor: '#495057' }
+                // }}
                 disabled={isSubmitting}
             >
              {isSubmitting ? <CircularProgress size={24} color="inherit" /> : (isEdit ? t("save") : t("createUser"))}

@@ -129,7 +129,7 @@ const LoginPage = () => {
                 id="login"
                 label={t("login_field_login")}
                 name="login"
-                autoComplete="login"
+                autoComplete="username"
                 autoFocus
                 value={login}
                 onChange={handleLoginChange} 
@@ -160,18 +160,20 @@ const LoginPage = () => {
                 {loading ? <CircularProgress size={24} color="inherit" /> : t("login_button_submit")}
               </Button>
               
-              {/* FUTURO: grid para links de apoio */}
-              {/*<Grid container>
+              <Grid container>
                 <Grid item xs>
-                  <Link href="/forgot-password" variant="body2" onClick={(e) => {
-                    e.preventDefault(); 
-                    navigate('/forgot-password'); 
-                  }}>
-                    {t("login_link_forgot_password") || 'Esqueceu a senha?'}
+                  <Link 
+                    href="/forgot-password" 
+                    variant="body2" 
+                    onClick={(e) => {
+                      e.preventDefault(); 
+                      navigate('/forgot-password'); 
+                    }}>
+                      {/* Futuro link para recuperação de senha */}
+                    {/* {t("login_link_forgot_password") || 'Esqueceu a senha?'} */}
                   </Link>
                 </Grid>
-                </Grid>*/}
-
+              </Grid>
             </Box>
           </CardContent>
         </Card>

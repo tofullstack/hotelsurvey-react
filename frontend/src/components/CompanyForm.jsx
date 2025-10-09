@@ -116,12 +116,14 @@ const CompanyForm = () => {
             }}
         >
             <Button
+            
               variant="contained"
-              sx={{ 
-                  backgroundColor: '#343a40', 
-                  color: 'white', 
-                  '&:hover': { backgroundColor: '#495057' }
-              }}
+              color='primary'
+              // sx={{ 
+              //     backgroundColor: '#343a40', 
+              //     color: 'white', 
+              //     '&:hover': { backgroundColor: '#495057' }
+              // }}
               startIcon={<ArrowBackIcon />}
               size='large'
               onClick={handleCancel}
@@ -133,11 +135,11 @@ const CompanyForm = () => {
                 type="submit" 
                 variant="contained" 
                 size='large'
-                sx={{ 
-                    backgroundColor: '#343a40', 
-                    color: 'white', 
-                    '&:hover': { backgroundColor: '#495057' }
-                }}
+                color='primary'
+                // sx={{ 
+                //     backgroundColor: '#343a40', 
+                //     '&:hover': { backgroundColor: '#495057' }
+                // }}
             >
              {isEdit ? t("save") : t("menu_company_form_create_button")}
             </Button>

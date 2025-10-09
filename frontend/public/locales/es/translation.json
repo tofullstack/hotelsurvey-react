@@ -243,7 +243,17 @@
     "operator_contains": "Contiene",
     "column_company_serie": "Serie de la Empresa",
     "filter_value": "Valor",
-    "resetFilters": "Restablecer Filtros"
+    "resetFilters": "Restablecer Filtros",
+    "guestUhIndicator": "UH del Huésped",
+    "guestLastName": "Apellido",
+    "guestLastNameOptionalHelp":"Ingrese su apellido",
+    "guestUhRequiredHelp":"Ingresa la UH de la habitación",
+    "responseLanguage": "Idioma de la Respuesta",
+    "questionLanguage": "Idioma de la Pregunta",
+    "guestUH": "UH",
+    "downloadSingleReport": "Descargar Informe Individual",
+    "defaultLanguage": "Idioma Predeterminado",
+    "advancedFilters": "Filtros Avanzados"
 
 
 }

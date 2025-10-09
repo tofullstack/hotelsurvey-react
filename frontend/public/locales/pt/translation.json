@@ -244,6 +244,16 @@
     "operator_contains": "Contém",
     "column_company_serie": "Série da Empresa",
     "filter_value": "Valor",
-    "reserFilters": "Redefinir Filtros"
+    "reserFilters": "Redefinir Filtros",
+    "guestUhIndicator": "UH do Hóspede",
+    "guestLastName": "Sobrenome",
+    "guestLastNameOptionalHelp": "Insira seu sobrenome",
+    "guestUhRequiredHelp": "Insira a UH do quarto",
+    "responseLanguage": "Idioma da Resposta",
+    "questionLanguage": "Idioma da Pergunta",
+    "guestUH": "UH",
+    "downloadSingleReport": "Baixar Relatório Individual",
+    "defaultLanguage": "Idioma Padrão",
+    "advancedFilters": "Filtros Avançados"
 
 }

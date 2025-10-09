@@ -9,7 +9,7 @@ import {
   TableRow,
   Paper,
   Button,
-  Dialog, // Mantido apenas para o modal de desativação
+  Dialog,
   DialogActions,
   DialogContent,
   DialogContentText,
@@ -180,7 +180,6 @@ const UserManagementPage = () => {
   };
 
 
-  // --- Renderização de Status ---
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
@@ -193,11 +192,9 @@ const UserManagementPage = () => {
     return <Typography color="error" sx={{ textAlign: 'center', mt: 4 }}>{error}</Typography>;
   }
 
-  // --- Renderização Principal (UI) ---
   return (
     <Container maxWidth="xl" sx={{ my: 4 }}> 
 
-      {/* Alerta de feedback */}
       <Collapse in={alertInfo.open}>
         <Alert
           icon={<CheckIcon fontSize="inherit" />}
@@ -209,7 +206,6 @@ const UserManagementPage = () => {
         </Alert>
       </Collapse>
       
-      {/* Breadcrumbs */}
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
         <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">{t("breadcrumb_home")}
         </Link>
@@ -218,19 +214,15 @@ const UserManagementPage = () => {
       
       <Paper sx={{ p: 3, boxShadow: 'none', border: '1px solid #e0e0e0' }}> 
         
-        {/* Cabeçalho da Tabela - Título, Opções e Botão */}
         <Box mb={2} sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant="h5" component="h1">
             {t("manageUsers")}
           </Typography>
           <Stack direction="row" spacing={1} alignItems="center">
-             {/* Ícones de Opções (Filtro, Download, Busca) - Placeholders */}
             <IconButton size="small" aria-label="Filtro" sx={{ border: '1px solid #e0e0e0' }}>
               <FilterListIcon fontSize="small" />
             </IconButton>
-            <IconButton size="small" aria-label="Download" sx={{ border: '1px solid #e0e0e0' }}>
-              <GetAppIcon fontSize="small" />
-            </IconButton>
+          
             <IconButton size="small" aria-label="Busca" sx={{ border: '1px solid #e0e0e0' }}>
               <SearchIcon fontSize="small" />
             </IconButton>
@@ -239,7 +231,7 @@ const UserManagementPage = () => {
               variant="contained"
               color='primary' 
               startIcon={<AddIcon />}
-              onClick={handleCreateNew} // Alterado para navegação
+              onClick={handleCreateNew} 
               size="medium" 
             >
               {t('createUser')}
@@ -247,7 +239,6 @@ const UserManagementPage = () => {
           </Stack>
         </Box>
 
-        {/* Tabela de Usuários (conteúdo mantido) */}
         <TableContainer>
           <Table>
             <TableHead>
@@ -322,7 +313,6 @@ const UserManagementPage = () => {
           </Table>
         </TableContainer>
 
-        {/* Paginação Original (MANTIDA) */}
         <Box sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
           <Pagination
             count={totalPages}
@@ -332,7 +322,6 @@ const UserManagementPage = () => {
           />
         </Box>
         
-        {/* Menu de Ações (MoreVertIcon) */}
         <Menu
           id="long-menu"
           MenuListProps={{
@@ -344,7 +333,7 @@ const UserManagementPage = () => {
         >
           {currentUser && (
             [
-              <MenuItem key="edit" onClick={() => handleEdit(currentUser)}> {/* Alterado para navegação */}
+              <MenuItem key="edit" onClick={() => handleEdit(currentUser)}> 
                 <EditIcon fontSize="small" sx={{ mr: 1 }} /> {t('edit')}
               </MenuItem>,
               currentUser.active ? (
@@ -367,7 +356,6 @@ const UserManagementPage = () => {
 
       </Paper>
 
-      {/* MODAL DE CRIAÇÃO/EDIÇÃO REMOVIDO DAQUI */}
 
       <Dialog
         open={openDeactivateModal}

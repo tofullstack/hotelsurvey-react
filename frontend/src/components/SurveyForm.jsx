@@ -48,7 +48,8 @@ const SurveyForm = ({ formId, language }) => {
 
   const [surveyStructure, setSurveyStructure] = useState(null);
   const [allAnswers, setAllAnswers] = useState({});
-  const [guestIdentifier, setGuestIdentifier] = useState("");
+  const [guestUH, setGuestUH] = useState(""); 
+  const [guestLastName, setGuestLastName] = useState(""); 
   const [freeTextFeedback, setFreeTextFeedback] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -232,10 +233,12 @@ const handleAnswerChange = async (questionId, value) => {
   const handleIdentificationSubmit = (e) => {
     e.preventDefault();
 
-    if (!guestIdentifier.trim()) {
-        showAlert(t('guestIdentifierRequired'), 'warning');
+    // ATUALIZAÇÃO: Verifica guestUH (antigo guestIdentifier)
+    if (!guestUH.trim()) {
+        showAlert(t('guestUhRequired'), 'warning');
         return;
     }
+    // guestLastName é opcional e não precisa de validação obrigatória
 
     setFormPhase('questions');
   };
@@ -260,7 +263,10 @@ const handleAnswerChange = async (questionId, value) => {
     const surveyData = {
       companyId: surveyStructure.companyId,
       formId: formId,
-      guestIdentifier: guestIdentifier,
+      // ATUALIZAÇÃO: Mapeamento para guestUH e guestLastName
+      guestUH: guestUH,
+      guestLastName: guestLastName,
+      // Fim das ATUALIZAÇÕES
       freeTextFeedback: freeTextFeedback,
       language: selectedLanguage,
       answers: submittedAnswers,
@@ -332,11 +338,20 @@ const handleAnswerChange = async (questionId, value) => {
                 required
                 fullWidth 
                 margin="normal" 
-                label={t("indicator")} 
-                value={guestIdentifier} 
-                onChange={(e) => setGuestIdentifier(e.target.value)} 
+                label={t("guestUhIndicator")} 
+                value={guestUH} 
+                onChange={(e) => setGuestUH(e.target.value)} 
                 InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} 
-                helperText={t('indicatorRequiredHelp')}
+                helperText={t('guestUhRequiredHelp')}
+              />
+              <TextField 
+                fullWidth 
+                margin="normal" 
+                label={t("guestLastName")} 
+                value={guestLastName} 
+                onChange={(e) => setGuestLastName(e.target.value)} 
+                InputProps={{ startAdornment: (<PersonIcon sx={{ mr: 1, color: "action.active" }} />) }} 
+                helperText={t('guestLastNameOptionalHelp')}
               />
               <Button 
                 type="submit" 

@@ -244,7 +244,17 @@
     "operator_contains": "Contains",
     "column_company_serie": "Company Series",
     "filter_value": "Value",
-    "resetFilters": "Reset Filters"
+    "resetFilters": "Reset Filters",
+    "guestUhIndicator": "Guest UH",
+    "guestLastName": "Last Name",
+    "guestLastNameOptionalHelp":"Enter your last name",
+    "guestUhRequiredHelp":"Please enter your UH",
+    "responseLanguage": "Response Language",
+    "questionLanguage": "Question Language",
+    "guestUH": "UH",
+    "downloadSingleReport": "Download Report",
+    "defaultLanguage": "Default Language",
+    "advancedFilters": "Advanced Filters"
     
 
 
