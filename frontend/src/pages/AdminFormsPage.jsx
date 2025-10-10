@@ -11,8 +11,6 @@ import { useTranslation, Trans } from "react-i18next";
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckIcon from '@mui/icons-material/Check';
 import FilterListIcon from '@mui/icons-material/FilterList';
-import GetAppIcon from '@mui/icons-material/GetApp';
-
 import {
   Container,
   Box,
@@ -39,7 +37,6 @@ import {
   Menu,
   Collapse,
   TextField,
-  InputAdornment,
 } from '@mui/material';
 import {
   Add as AddIcon,

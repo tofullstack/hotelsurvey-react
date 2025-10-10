@@ -53,7 +53,7 @@ const PreviewModal = ({ open, handleClose, formId }) => {
       };
       fetchPreviewData();
     }
-  }, [open, formId, t]); // Add 't' to the dependency array
+  }, [open, formId, t]); 
 
   return (
     <Modal

@@ -41,14 +41,12 @@ const UserCreateEditPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
-  // 1. Carregar Empresas e Dados do Usuário (se for edição)
   useEffect(() => {
     const fetchDependencies = async () => {
       let fetchedUser = null;
       let companySuccess = true;
       
       try {
-        // Carregar Empresas (ativa ou inativa)
         const companyResponse = await CompanyService.getAllCompanies({ size: 1000 });
         setCompanies(companyResponse.content || []);
       } catch (err) {
@@ -57,22 +55,18 @@ const UserCreateEditPage = () => {
         companySuccess = false;
       }
       
-      // Carregar Usuário se for edição
       if (isEdit) {
         try {
-          // *** ESTA É A CHAMADA QUE ESTAVA FALTANDO E CAUSANDO O ERRO ***
           fetchedUser = await UserService.getUserById(id);
           setLogin(fetchedUser.login || '');
           setProfile(fetchedUser.profile || 'USUARIO');
           setCompanyId(fetchedUser.companyId || '');
         } catch (err) {
           console.error(`Erro ao carregar usuário com ID ${id}:`, err);
-          // Mensagem de erro alterada para ser mais útil no frontend
           setError(err.response?.data?.message || t('failToLoadUserById')); 
         }
       }
 
-      // Se a busca inicial de empresas falhou, o componente para de carregar
       if (!companySuccess && !isEdit) {
          setInitialLoading(false);
          return;
@@ -97,11 +91,9 @@ const UserCreateEditPage = () => {
 
     try {
       if (isEdit) {
-        // Para edição, só enviamos os campos que podem ser atualizados
         const updateData = { profile: userData.profile, companyId: userData.companyId };
         await UserService.updateUser(id, updateData);
       } else {
-        // Para criação, o campo password é obrigatório, garantido pelo 'required' no JSX
         await UserService.createUser(userData);
       }
       navigate('/admin/users'); 
@@ -125,7 +117,6 @@ const UserCreateEditPage = () => {
   return (
     <Container sx={{ mt: 4 }}> 
 
-      {/* Breadcrumbs */}
       <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 1, '& .MuiLink-root': { color: 'text.secondary' } }}>
         <Link underline="hover" color="inherit" component={RouterLink} to="/admin/dashboard">
             {t("breadcrumb_home")}
@@ -138,19 +129,16 @@ const UserCreateEditPage = () => {
         </Typography>
       </Breadcrumbs>
       
-      {/* Título Principal */}
       <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
         {title}
       </Typography>
 
-      {/* Alerta de Erro */}
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
       <Box component="form" onSubmit={handleSubmit}>
         
         <Grid container spacing={4} sx={{ mb: 4 }}>
           
-          {/* Campo Login */}
           <Grid item xs={12} md={6}>
             <TextField
               fullWidth
@@ -164,7 +152,6 @@ const UserCreateEditPage = () => {
             />
           </Grid>
           
-          {/* Campo Password (Apenas para criação) */}
           <Grid item xs={12} md={6}>
             {!isEdit ? (
                 <TextField
@@ -178,12 +165,10 @@ const UserCreateEditPage = () => {
                   required
                 />
             ) : (
-                // Placeholder para manter o alinhamento
                 <Box sx={{ height: 56 }} /> 
             )}
           </Grid>
 
-          {/* Campo Profile */}
           <Grid item xs={12} md={6}>
             <FormControl fullWidth variant="outlined" size="medium">
                 <InputLabel>{t('userProfile')}</InputLabel>
@@ -199,7 +184,6 @@ const UserCreateEditPage = () => {
             </FormControl>
           </Grid>
 
-          {/* Campo Company */}
           <Grid item xs={12} md={6}>
             {companies.length === 0 && !error ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 56 }}>
@@ -227,7 +211,6 @@ const UserCreateEditPage = () => {
           </Grid>
         </Grid>
 
-        {/* --- Botões de Ação (Estilo Fundo Escuro) --- */}
         <Box 
             sx={{ 
                 pt: 4, 

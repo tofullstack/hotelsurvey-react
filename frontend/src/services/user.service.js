@@ -19,7 +19,6 @@ const UserService = {
     }
   },
   
-  // Função adicionada para corrigir o erro na página de edição
   getUserById: async (userId) => {
     try {
       const response = await api.get(`${USER_BASE_URL}/${userId}`);

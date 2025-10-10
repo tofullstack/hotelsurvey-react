@@ -169,7 +169,7 @@ const LoginPage = () => {
                       e.preventDefault(); 
                       navigate('/forgot-password'); 
                     }}>
-                      {/* Futuro link para recuperação de senha */}
+                      {/* futuro link para recuperação de senha */}
                     {/* {t("login_link_forgot_password") || 'Esqueceu a senha?'} */}
                   </Link>
                 </Grid>

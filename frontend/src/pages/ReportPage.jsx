@@ -39,15 +39,16 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import { Link as RouterLink } from 'react-router-dom';
 import DownloadIcon from '@mui/icons-material/Download';
 import RefreshIcon from '@mui/icons-material/Refresh'; 
-import { 
-    BarChart, 
-    Bar, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip as RechartsTooltip, 
-    ResponsiveContainer 
-} from 'recharts';
+// imports para o grafico
+// import { 
+//     BarChart, 
+//     Bar, 
+//     XAxis, 
+//     YAxis, 
+//     CartesianGrid, 
+//     Tooltip as RechartsTooltip, 
+//     ResponsiveContainer 
+// } from 'recharts';
 
 
 const languages = [
@@ -78,7 +79,7 @@ const ReportPage = () => {
   const [totalResponses, setTotalResponses] = useState(0);
   const [averageRating, setAverageRating] = useState(null);
   const [ratingStandardDeviation, setRatingStandardDeviation] = useState(null);
-  const [ratingDistribution, setRatingDistribution] = useState(mockRatingDistribution);
+  const [setRatingDistribution] = useState(mockRatingDistribution);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -576,7 +577,6 @@ const ReportPage = () => {
                                     {answer.surveySectionName}
                                   </Typography>
                                   <Typography variant="body1" fontWeight="bold" sx={{ mt: 1 }}>
-                                    {/* Esta label agora reflete o questionLanguage do filtro, graças ao backend */}
                                     {answer.questionLabel}
                                   </Typography>
                                   <Typography variant="body1" sx={{ mt: 1, wordWrap: 'break-word', flexGrow: 1 }}>

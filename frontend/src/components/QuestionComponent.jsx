@@ -3,9 +3,6 @@ import { useTranslation } from "react-i18next";
 import {
   FormControl,
   FormLabel,
-  RadioGroup,
-  Radio,
-  FormControlLabel,
   TextField,
   Select,
   MenuItem,
@@ -38,7 +35,7 @@ const StyledRating = styled(Rating)(({ theme }) => ({
   }
 }));
 
-const emojiIcons = (t) => ({//todo color amarelo
+const emojiIcons = (t) => ({
   1: { icon: <SentimentVeryDissatisfiedIcon sx={{ fontSize: 60 }} color="error" />, label: t("sentiment_1") },
   2: { icon: <SentimentDissatisfiedIcon sx={{ fontSize: 60 }} color="error" />, label: t("sentiment_2") },
   3: { icon: <SentimentSatisfiedIcon sx={{ fontSize: 60 }} color="warning" />, label: t("sentiment_3") },

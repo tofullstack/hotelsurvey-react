@@ -254,6 +254,7 @@
     "guestUH": "UH",
     "downloadSingleReport": "Baixar Relatório Individual",
     "defaultLanguage": "Idioma Padrão",
-    "advancedFilters": "Filtros Avançados"
+    "advancedFilters": "Filtros Avançados",
+    "resetFilters": "Redefinir Filtros"
 
 }

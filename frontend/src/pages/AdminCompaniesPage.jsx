@@ -38,7 +38,7 @@ import {
     Add as AddIcon, 
     Delete, 
     MoreVert as MoreVertIcon,
-    Refresh as RefreshIcon // 💡 Importado para o botão de Rollback
+    Refresh as RefreshIcon
 } from "@mui/icons-material";
 import FilterListIcon from "@mui/icons-material/FilterList"; 
 import GetAppIcon from "@mui/icons-material/GetApp";
@@ -135,32 +135,27 @@ const AdminCompaniesPage = () => {
     fetchCompanies();
   }, [page, rowsPerPage]); 
 
-  // Função ajustada para garantir que a busca use o estado atual ou resetado
   const handleSearch = () => {
-      setPage(0); // Volta para a primeira página ao aplicar busca
+      setPage(0);
       fetchCompanies(0, searchName, status);
   };
 
   const handleApplyFilters = () => {
-      setPage(0); // Volta para a primeira página ao aplicar filtros
+      setPage(0);
       handleFilterMenuClose();
       fetchCompanies(0, searchName, status);
   };
 
-  // 💡 FUNÇÃO PARA LIMPAR TODOS OS FILTROS
   const handleResetFilters = () => {
-    // 1. Resetar os estados para o valor inicial
+  
     setSearchName("");
     setStatus("all");
 
-    // 2. Voltar para a primeira página e fechar o menu
     setPage(0);
     if (openFilterMenu) handleFilterMenuClose();
     
-    // 3. Chamar a busca com os valores resetados
     fetchCompanies(0, "", "all"); 
   };
-  // FIM: FUNÇÃO PARA LIMPAR TODOS OS FILTROS
 
 
   const handleStatusChange = (e) => {
@@ -247,7 +242,6 @@ const AdminCompaniesPage = () => {
                 mb: 2 
             }}
         >
-            {/* 💡 NOVO: Botão de Rollback/Reset */}
             <IconButton 
                 size="small" 
                 aria-label="Reset Filters" 
@@ -323,7 +317,7 @@ const AdminCompaniesPage = () => {
                 sx={{ mb: 1 }}
                 displayEmpty
             >
-                <MenuItem value="all">{t("allStatus") || "Todos"}</MenuItem> {/* Adicionado "All" no filtro */}
+                {/* <MenuItem value="all">{t("allStatus") || "Todos"}</MenuItem> */}
                 <MenuItem value="active">{t("menu_company_active")}</MenuItem>
                 <MenuItem value="inactive">{t("menu_company_inactive")}</MenuItem>
             </Select>

@@ -27,7 +27,6 @@ import {
 import PersonIcon from "@mui/icons-material/Person";
 import ChatIcon from "@mui/icons-material/Chat";
 import SendIcon from "@mui/icons-material/Send";
-import CloseIcon from '@mui/icons-material/Close';
 
 const style = {
   position: 'absolute',
@@ -233,12 +232,10 @@ const handleAnswerChange = async (questionId, value) => {
   const handleIdentificationSubmit = (e) => {
     e.preventDefault();
 
-    // ATUALIZAÇÃO: Verifica guestUH (antigo guestIdentifier)
     if (!guestUH.trim()) {
         showAlert(t('guestUhRequired'), 'warning');
         return;
     }
-    // guestLastName é opcional e não precisa de validação obrigatória
 
     setFormPhase('questions');
   };
@@ -263,10 +260,8 @@ const handleAnswerChange = async (questionId, value) => {
     const surveyData = {
       companyId: surveyStructure.companyId,
       formId: formId,
-      // ATUALIZAÇÃO: Mapeamento para guestUH e guestLastName
       guestUH: guestUH,
       guestLastName: guestLastName,
-      // Fim das ATUALIZAÇÕES
       freeTextFeedback: freeTextFeedback,
       language: selectedLanguage,
       answers: submittedAnswers,

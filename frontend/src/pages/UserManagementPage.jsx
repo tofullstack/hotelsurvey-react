@@ -32,7 +32,6 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import FilterListIcon from '@mui/icons-material/FilterList'; 
-import GetAppIcon from '@mui/icons-material/GetApp'; 
 import SearchIcon from '@mui/icons-material/Search'; 
 import CheckIcon from '@mui/icons-material/Check';
 import Collapse from '@mui/material/Collapse';
@@ -63,7 +62,7 @@ const UserManagementPage = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(0);
-  const [totalElements, setTotalElements] = useState(0); 
+  const [ setTotalElements] = useState(0); 
 
   const [anchorEl, setAnchorEl] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
